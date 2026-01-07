@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EHS.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateDbSchema : Migration
+    public partial class GenerateDbSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -218,8 +218,7 @@ namespace EHS.Infrastructure.Migrations
                         name: "FK_DepartmentSafetyOfficers_AspNetUsers_SafetyOfficerId",
                         column: x => x.SafetyOfficerId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_DepartmentSafetyOfficers_Departments_DepartmentId",
                         column: x => x.DepartmentId,
@@ -334,20 +333,17 @@ namespace EHS.Infrastructure.Migrations
                         name: "FK_Incidents_AspNetUsers_AssignedToImplementorId",
                         column: x => x.AssignedToImplementorId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Incidents_AspNetUsers_AssignedToSafetyOfficerId",
                         column: x => x.AssignedToSafetyOfficerId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Incidents_AspNetUsers_InitiatedByUserId",
                         column: x => x.InitiatedByUserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Incidents_Departments_DepartmentId",
                         column: x => x.DepartmentId,
@@ -383,7 +379,7 @@ namespace EHS.Infrastructure.Migrations
                         column: x => x.MachineId,
                         principalTable: "Machines",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Incidents_Organizations_OrganizationId",
                         column: x => x.OrganizationId,
@@ -395,7 +391,7 @@ namespace EHS.Infrastructure.Migrations
                         column: x => x.ProductionLineId,
                         principalTable: "ProductionLines",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -449,8 +445,7 @@ namespace EHS.Infrastructure.Migrations
                         name: "FK_IncidentComments_AspNetUsers_CommentedByUserId",
                         column: x => x.CommentedByUserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_IncidentComments_Incidents_IncidentId",
                         column: x => x.IncidentId,
@@ -490,8 +485,7 @@ namespace EHS.Infrastructure.Migrations
                         name: "FK_IncidentImplementations_AspNetUsers_ImplementedByUserId",
                         column: x => x.ImplementedByUserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_IncidentImplementations_ClosureActions_ClosureActionId",
                         column: x => x.ClosureActionId,

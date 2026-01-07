@@ -1763,7 +1763,7 @@ namespace EHS.Infrastructure.Migrations
                     b.HasOne("EHS.Domain.Entities.ApplicationUser", "SafetyOfficer")
                         .WithMany()
                         .HasForeignKey("SafetyOfficerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Department");
@@ -1795,12 +1795,12 @@ namespace EHS.Infrastructure.Migrations
                     b.HasOne("EHS.Domain.Entities.ApplicationUser", "AssignedToImplementor")
                         .WithMany()
                         .HasForeignKey("AssignedToImplementorId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("EHS.Domain.Entities.ApplicationUser", "AssignedToSafetyOfficer")
                         .WithMany()
                         .HasForeignKey("AssignedToSafetyOfficerId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("EHS.Domain.Entities.Department", "Department")
                         .WithMany("Incidents")
@@ -1835,13 +1835,13 @@ namespace EHS.Infrastructure.Migrations
                     b.HasOne("EHS.Domain.Entities.ApplicationUser", "InitiatedByUser")
                         .WithMany()
                         .HasForeignKey("InitiatedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("EHS.Domain.Entities.Machine", "Machine")
                         .WithMany("Incidents")
                         .HasForeignKey("MachineId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("EHS.Domain.Entities.Organization", "Organization")
                         .WithMany("Incidents")
@@ -1852,7 +1852,7 @@ namespace EHS.Infrastructure.Migrations
                     b.HasOne("EHS.Domain.Entities.ProductionLine", "ProductionLine")
                         .WithMany("Incidents")
                         .HasForeignKey("ProductionLineId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("AssignedToImplementor");
 
@@ -1882,7 +1882,7 @@ namespace EHS.Infrastructure.Migrations
                     b.HasOne("EHS.Domain.Entities.ApplicationUser", "CommentedByUser")
                         .WithMany()
                         .HasForeignKey("CommentedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("EHS.Domain.Entities.Incident", "Incident")
@@ -1907,7 +1907,7 @@ namespace EHS.Infrastructure.Migrations
                     b.HasOne("EHS.Domain.Entities.ApplicationUser", "ImplementedByUser")
                         .WithMany()
                         .HasForeignKey("ImplementedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("EHS.Domain.Entities.Incident", "Incident")

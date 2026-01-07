@@ -119,7 +119,7 @@ namespace EHS.Infrastructure.Data
                 .HasOne(i => i.ProductionLine)
                 .WithMany(pl => pl.Incidents)
                 .HasForeignKey(i => i.ProductionLineId)
-                .OnDelete(DeleteBehavior.SetNull)
+                .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired(false);
 
             // Incident -> Machine (Many-to-One, Optional)
@@ -127,30 +127,34 @@ namespace EHS.Infrastructure.Data
                 .HasOne(i => i.Machine)
                 .WithMany(m => m.Incidents)
                 .HasForeignKey(i => i.MachineId)
-                .OnDelete(DeleteBehavior.SetNull)
+                .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired(false);
 
             // Incident -> InitiatedByUser (Many-to-One)
+            // Changed from Restrict to NoAction to prevent cascade path cycles
             modelBuilder.Entity<Incident>()
                 .HasOne(i => i.InitiatedByUser)
                 .WithMany()
                 .HasForeignKey(i => i.InitiatedByUserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired(true);
 
             // Incident -> AssignedToSafetyOfficer (Many-to-One, Optional)
+            // Changed from SetNull to NoAction to prevent cascade path cycles
             modelBuilder.Entity<Incident>()
                 .HasOne(i => i.AssignedToSafetyOfficer)
                 .WithMany()
                 .HasForeignKey(i => i.AssignedToSafetyOfficerId)
-                .OnDelete(DeleteBehavior.SetNull)
+                .OnDelete(DeleteBehavior.NoAction)
                 .IsRequired(false);
 
             // Incident -> AssignedToImplementor (Many-to-One, Optional)
+            // Changed from SetNull to NoAction to prevent cascade path cycles
             modelBuilder.Entity<Incident>()
                 .HasOne(i => i.AssignedToImplementor)
                 .WithMany()
                 .HasForeignKey(i => i.AssignedToImplementorId)
-                .OnDelete(DeleteBehavior.SetNull)
+                .OnDelete(DeleteBehavior.NoAction)
                 .IsRequired(false);
 
             // Incident -> IncidentComment (One-to-Many)
@@ -202,11 +206,13 @@ namespace EHS.Infrastructure.Data
             // ==================== IncidentComment Relationships ====================
 
             // IncidentComment -> CommentedByUser (Many-to-One)
+            // Changed from Restrict to NoAction to prevent cascade path cycles
             modelBuilder.Entity<IncidentComment>()
                 .HasOne(c => c.CommentedByUser)
                 .WithMany()
                 .HasForeignKey(c => c.CommentedByUserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired(true);
 
             // ==================== IncidentImplementation Relationships ====================
 
@@ -218,11 +224,13 @@ namespace EHS.Infrastructure.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             // IncidentImplementation -> ImplementedByUser (Many-to-One)
+            // Changed from Restrict to NoAction to prevent cascade path cycles
             modelBuilder.Entity<IncidentImplementation>()
                 .HasOne(impl => impl.ImplementedByUser)
                 .WithMany()
                 .HasForeignKey(impl => impl.ImplementedByUserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired(true);
 
             // IncidentImplementation -> RootCauseAnalysisDetail (One-to-Many)
             modelBuilder.Entity<IncidentImplementation>()
@@ -250,11 +258,13 @@ namespace EHS.Infrastructure.Data
             // ==================== DepartmentSafetyOfficer Relationships ====================
 
             // DepartmentSafetyOfficer -> SafetyOfficer (Many-to-One)
+            // Changed from Cascade to NoAction to prevent cascade path cycles
             modelBuilder.Entity<DepartmentSafetyOfficer>()
                 .HasOne(dso => dso.SafetyOfficer)
                 .WithMany()
                 .HasForeignKey(dso => dso.SafetyOfficerId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired(true);
 
             // ==================== AuditLog Relationships ====================
 
