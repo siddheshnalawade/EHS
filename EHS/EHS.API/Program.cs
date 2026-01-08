@@ -1,8 +1,15 @@
+using AutoMapper;
+using EHS.Application.DTOs;
 using EHS.Application.Interfaces;
+using EHS.Application.Mappings;
+using EHS.Application.Repositories;
+using EHS.Application.Validators;
 using EHS.Domain.Entities;
 using EHS.Domain.Settings;
 using EHS.Infrastructure.Data;
+using EHS.Infrastructure.Repositories;
 using EHS.Infrastructure.Services;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -25,25 +32,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
 });
-
-// ============================================
-// JWT Configuration
-// ============================================
-/// <summary>
-/// Maps JWT settings from appsettings.json to JWTOptions class.
-/// Used to configure token expiration, issuer, audience, and signing key.
-/// </summary>
-builder.Services.Configure<JWTOptions>(builder.Configuration.GetSection("JWT"));
-
-// ============================================
-// Authentication Service Registration
-// ============================================
-/// <summary>
-/// Registers AuthService as transient.
-/// Each request gets a new instance to avoid state sharing issues.
-/// Implements IAuthService interface for dependency injection.
-/// </summary>
-builder.Services.AddTransient<IAuthService, AuthService>();
 
 // ============================================
 // Identity & Password Policy Configuration
@@ -113,6 +101,38 @@ builder.Services.AddAuthentication(options =>
 /// Policies can be defined here for granular permission management.
 /// </summary>
 builder.Services.AddAuthorization();
+
+// ============================================
+// JWT Configuration
+// ============================================
+/// <summary>
+/// Maps JWT settings from appsettings.json to JWTOptions class.
+/// Used to configure token expiration, issuer, audience, and signing key.
+/// </summary>
+builder.Services.Configure<JWTOptions>(builder.Configuration.GetSection("JWT"));
+
+// ============================================
+// AutoMapper Profile Cofiguration
+// ============================================
+builder.Services.AddAutoMapper(c => { }, typeof(OrganizationMappingProfile).Assembly);
+
+// ============================================
+// Validator Configuration
+// ============================================
+builder.Services.AddScoped<IValidator<CreateOrganizationRequest>, CreateOrganizationRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateOrganizationRequest>, UpdateOrganizationRequestValidator>();
+
+// ============================================
+// Custom Service Registration
+// ============================================
+/// <summary>
+/// Registers AuthService as transient.
+/// Each request gets a new instance to avoid state sharing issues.
+/// Implements IAuthService interface for dependency injection.
+/// </summary>
+builder.Services.AddScoped<IRepository<Organization>, Repository<Organization>>();
+builder.Services.AddTransient<IAuthService, AuthService>();
+builder.Services.AddTransient<IOrganizationService, OrganizationService>();
 
 // ============================================
 // Build Application
