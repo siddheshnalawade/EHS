@@ -136,6 +136,17 @@ builder.Services.AddScoped<IValidator<UpdateProductionLineRequest>, UpdateProduc
 builder.Services.AddScoped<IValidator<CreateMachineRequest>, CreateMachineRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdateMachineRequest>, UpdateMachineRequestValidator>();
 
+// Incident Workflow Validators
+builder.Services.AddScoped<IValidator<CreateIncidentRequest>, CreateIncidentRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateIncidentRequest>, UpdateIncidentRequestValidator>();
+builder.Services.AddScoped<IValidator<RejectIncidentRequest>, RejectIncidentRequestValidator>();
+builder.Services.AddScoped<IValidator<ReassignToInitiatorRequest>, ReassignToInitiatorRequestValidator>();
+builder.Services.AddScoped<IValidator<AcceptAndAssignRequest>, AcceptAndAssignRequestValidator>();
+builder.Services.AddScoped<IValidator<CloseIncidentRequest>, CloseIncidentRequestValidator>();
+builder.Services.AddScoped<IValidator<AcceptIncidentRequest>, AcceptIncidentRequestValidator>();
+builder.Services.AddScoped<IValidator<PassToPeerRequest>, PassToPeerRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateImplementationRequest>, UpdateImplementationRequestValidator>();
+
 // ============================================
 // Repository Registration
 // ============================================
@@ -146,6 +157,13 @@ builder.Services.AddScoped<IRepository<Machine>, Repository<Machine>>();
 builder.Services.AddScoped<IRepository<IncidentType>, Repository<IncidentType>>();
 builder.Services.AddScoped<IRepository<IncidentNature>, Repository<IncidentNature>>();
 builder.Services.AddScoped<IRepository<IncidentSeverity>, Repository<IncidentSeverity>>();
+
+// Incident Workflow Repositories
+builder.Services.AddScoped<IRepository<Incident>, Repository<Incident>>();
+builder.Services.AddScoped<IRepository<IncidentStatus>, Repository<IncidentStatus>>();
+builder.Services.AddScoped<IRepository<IncidentImplementation>, Repository<IncidentImplementation>>();
+builder.Services.AddScoped<IRepository<RootCauseAnalysisDetail>, Repository<RootCauseAnalysisDetail>>();
+builder.Services.AddScoped<IRepository<ImplementationBenefit>, Repository<ImplementationBenefit>>();
 
 // ============================================
 // Service Registration
@@ -165,6 +183,9 @@ builder.Services.AddScoped<IIncidentSeverityService, IncidentSeverityService>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<IProductionLineService, ProductionLineService>();
 builder.Services.AddScoped<IMachineService, MachineService>();
+
+// Incident Workflow Services
+builder.Services.AddScoped<IIncidentService, IncidentService>();
 
 // Todo - Add CORS policy
 // Todo - Add Swagger for API documentation
