@@ -1,9 +1,5 @@
 ﻿using EHS.Domain.Entities;
 using System.Linq.Expressions;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EHS.Application.Repositories
 {

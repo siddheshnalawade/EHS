@@ -4,10 +4,7 @@ using EHS.Application.Interfaces;
 using EHS.Application.Repositories;
 using EHS.Domain.Entities;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace EHS.Infrastructure.Services
 {
@@ -29,6 +26,9 @@ namespace EHS.Infrastructure.Services
 
                 // Map entity to response DTO
                 var organizationResponse = mapper.Map<OrganizationResponse>(organization);
+
+                // Persist changes
+                await organizationRepository.SaveChangesAsync();
 
                 logger.LogInformation("Organization created successfully. OrganizationId: {OrganizationId}, Name: {Name}",
                   organization.Id, organization.Name);
@@ -269,11 +269,11 @@ namespace EHS.Infrastructure.Services
             }
         }
 
-        private Expression<Func<Organization, bool>> BuildOrganizationFilter(string? searchTerm)
+        private static Expression<Func<Organization, bool>> BuildOrganizationFilter(string? searchTerm)
         {
             return o => string.IsNullOrWhiteSpace(searchTerm) ||
-            o.Name.ToLower().Contains(searchTerm.ToLower()) ||
-            o.City.ToLower().Contains(searchTerm.ToLower());
+            o.Name.Contains(searchTerm, StringComparison.CurrentCultureIgnoreCase) ||
+            o.City.Contains(searchTerm, StringComparison.CurrentCultureIgnoreCase);
         }
     }
 }
