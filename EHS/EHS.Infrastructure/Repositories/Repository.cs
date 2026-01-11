@@ -2,12 +2,7 @@
 using EHS.Domain.Entities;
 using EHS.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace EHS.Infrastructure.Repositories
 {
@@ -24,7 +19,7 @@ namespace EHS.Infrastructure.Repositories
 
         public virtual async Task AddAsync(T entity)
         {
-            entity.CreatedAt = DateTime.Now;
+            entity.CreatedAt = DateTime.UtcNow;
             entity.IsDeleted = false;
             await _dbSet.AddAsync(entity);
         }
@@ -39,7 +34,7 @@ namespace EHS.Infrastructure.Repositories
             }
 
             entity.IsDeleted = true;
-            entity.DeletedAt = DateTime.Now;
+            entity.DeletedAt = DateTime.UtcNow;
             UpdateAsync(entity);
             return true;
         }
@@ -132,7 +127,7 @@ namespace EHS.Infrastructure.Repositories
 
         public virtual async Task<bool> ExistsAsync(Expression<Func<T, bool>> filter)
         {
-            return await _dbSet.AnyAsync();
+            return await _dbSet.AnyAsync(filter);
         }
 
         public virtual async Task<int> CountAsync(Expression<Func<T, bool>>? filter = null)

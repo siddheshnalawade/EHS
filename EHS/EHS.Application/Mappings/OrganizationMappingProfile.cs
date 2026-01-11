@@ -1,9 +1,6 @@
 ﻿using AutoMapper;
 using EHS.Application.DTOs;
 using EHS.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace EHS.Application.Mappings
 {

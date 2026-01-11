@@ -1,22 +1,20 @@
-﻿using Azure.Core;
-using EHS.Application.DTOs;
+﻿using EHS.Application.DTOs;
 using EHS.Application.Interfaces;
-using EHS.Application.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EHS.API.Controllers
+namespace EHS.API.Controllers.v1
 {
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class OrganizationController(
+    public class OrganizationsController(
         IOrganizationService organizationService,
         IValidator<CreateOrganizationRequest> createValidator,
         IValidator<UpdateOrganizationRequest> updateValidator
         ) : ControllerBase
     {
         [HttpPost]
-        public async Task<IActionResult> CreateOrganizaion([FromBody] CreateOrganizationRequest createRequest)
+        public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizationRequest createRequest)
         {
             var validationResult = await createValidator.ValidateAsync(createRequest);
             if (!validationResult.IsValid)
@@ -134,7 +132,7 @@ namespace EHS.API.Controllers
         }
 
         [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> DeleteOrgnization([FromRoute] Guid id)
+        public async Task<IActionResult> DeleteOrganization([FromRoute] Guid id)
         {
             // Call service
             var result = await organizationService.DeleteOrganizationAsync(id);

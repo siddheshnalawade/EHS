@@ -150,13 +150,23 @@ namespace EHS.Infrastructure.Services
 
                 if (!(await roleManager.RoleExistsAsync(registerRequest.Role)))
                 {
-                    await roleManager.CreateAsync(new ApplicationRole
+                    var roleCreateResult = await roleManager.CreateAsync(new ApplicationRole
                     {
                         Name = registerRequest.Role,
                     });
+
+                    if (!roleCreateResult.Succeeded)
+                    {
+                        logger.LogWarning("User registered successfully but failed to create new role. Email: {Email}, Role: {Role}", registerRequest.Email, registerRequest.Role);
+                        return new AuthResponse
+                        {
+                            IsAuthenticated = true,
+                            Message = "User registered successfully but failed to create new role."
+                        };
+                    }
                 }
 
-                await userManager.AddToRoleAsync(user, "Initiator");
+                await userManager.AddToRoleAsync(user, registerRequest.Role);
 
                 logger.LogInformation("User registered successfully: {UserId}", user.Id);
 

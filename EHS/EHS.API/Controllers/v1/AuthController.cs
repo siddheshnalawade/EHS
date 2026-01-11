@@ -2,7 +2,7 @@
 using EHS.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EHS.API.Controllers
+namespace EHS.API.Controllers.v1
 {
     [ApiController]
     [Route("api/v1/[controller]")]

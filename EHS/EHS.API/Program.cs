@@ -1,4 +1,4 @@
-using AutoMapper;
+using EHS.API.Middlewares;
 using EHS.Application.DTOs;
 using EHS.Application.Interfaces;
 using EHS.Application.Mappings;
@@ -122,22 +122,62 @@ builder.Services.AddAutoMapper(c => { }, typeof(OrganizationMappingProfile).Asse
 builder.Services.AddScoped<IValidator<CreateOrganizationRequest>, CreateOrganizationRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdateOrganizationRequest>, UpdateOrganizationRequestValidator>();
 
+// Master Data Validators
+builder.Services.AddScoped<IValidator<CreateIncidentTypeRequest>, CreateIncidentTypeRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateIncidentTypeRequest>, UpdateIncidentTypeRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateIncidentNatureRequest>, CreateIncidentNatureRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateIncidentNatureRequest>, UpdateIncidentNatureRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateIncidentSeverityRequest>, CreateIncidentSeverityRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateIncidentSeverityRequest>, UpdateIncidentSeverityRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateDepartmentRequest>, CreateDepartmentRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateDepartmentRequest>, UpdateDepartmentRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateProductionLineRequest>, CreateProductionLineRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateProductionLineRequest>, UpdateProductionLineRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateMachineRequest>, CreateMachineRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateMachineRequest>, UpdateMachineRequestValidator>();
+
 // ============================================
-// Custom Service Registration
+// Repository Registration
+// ============================================
+builder.Services.AddScoped<IRepository<Organization>, Repository<Organization>>();
+builder.Services.AddScoped<IRepository<Department>, Repository<Department>>();
+builder.Services.AddScoped<IRepository<ProductionLine>, Repository<ProductionLine>>();
+builder.Services.AddScoped<IRepository<Machine>, Repository<Machine>>();
+builder.Services.AddScoped<IRepository<IncidentType>, Repository<IncidentType>>();
+builder.Services.AddScoped<IRepository<IncidentNature>, Repository<IncidentNature>>();
+builder.Services.AddScoped<IRepository<IncidentSeverity>, Repository<IncidentSeverity>>();
+
+// ============================================
+// Service Registration
 // ============================================
 /// <summary>
-/// Registers AuthService as transient.
-/// Each request gets a new instance to avoid state sharing issues.
-/// Implements IAuthService interface for dependency injection.
+/// Registers all application services as Scoped.
+/// Scoped lifetime ensures one instance per HTTP request,
+/// which aligns with DbContext lifetime.
 /// </summary>
-builder.Services.AddScoped<IRepository<Organization>, Repository<Organization>>();
-builder.Services.AddTransient<IAuthService, AuthService>();
-builder.Services.AddTransient<IOrganizationService, OrganizationService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Master Data Services
+builder.Services.AddScoped<IOrganizationService, OrganizationService>();
+builder.Services.AddScoped<IIncidentTypeService, IncidentTypeService>();
+builder.Services.AddScoped<IIncidentNatureService, IncidentNatureService>();
+builder.Services.AddScoped<IIncidentSeverityService, IncidentSeverityService>();
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<IProductionLineService, ProductionLineService>();
+builder.Services.AddScoped<IMachineService, MachineService>();
+
+// Todo - Add CORS policy
+// Todo - Add Swagger for API documentation
 
 // ============================================
 // Build Application
 // ============================================
 var app = builder.Build();
+
+/// <summary>
+/// Global exception handling middleware.
+/// </summary>
+app.UseMiddleware<ApplicationExceptionHandlingMiddleware>();
 
 /// <summary>
 /// Authentication middleware.
