@@ -20,6 +20,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddOpenApi();
 
 // ============================================
 // Database Configuration
@@ -194,6 +195,15 @@ builder.Services.AddScoped<IIncidentService, IncidentService>();
 // Build Application
 // ============================================
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "EHS");
+    });
+}
 
 /// <summary>
 /// Global exception handling middleware.
