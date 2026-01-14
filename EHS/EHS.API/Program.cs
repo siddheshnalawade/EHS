@@ -15,12 +15,22 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+// Configure Serilog to read from appsettings.json
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+
+// Clear default logging providers and add Serilog
+builder.Host.UseSerilog();
 
 // ============================================
 // Database Configuration
@@ -209,6 +219,12 @@ if (app.Environment.IsDevelopment())
 /// <summary>
 /// Global exception handling middleware.
 /// </summary>
+/// <summary>
+/// Enable Serilog Request Logging.
+/// Logs HTTP requests with clearer messages and performance data.
+/// </summary>
+app.UseSerilogRequestLogging();
+
 app.UseMiddleware<ApplicationExceptionHandlingMiddleware>();
 
 /// <summary>
