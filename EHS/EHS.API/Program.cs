@@ -115,15 +115,15 @@ builder.Services.Configure<JWTOptions>(builder.Configuration.GetSection("JWT"));
 // ============================================
 // AutoMapper Profile Cofiguration
 // ============================================
-builder.Services.AddAutoMapper(c => { }, typeof(OrganizationMappingProfile).Assembly);
+builder.Services.AddAutoMapper(c => { }, typeof(MasterDataMappingProfile).Assembly);
+builder.Services.AddAutoMapper(c => { }, typeof(IncidentMappingProfile).Assembly);
 
 // ============================================
 // Validator Configuration
 // ============================================
+// Master Data Validators
 builder.Services.AddScoped<IValidator<CreateOrganizationRequest>, CreateOrganizationRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdateOrganizationRequest>, UpdateOrganizationRequestValidator>();
-
-// Master Data Validators
 builder.Services.AddScoped<IValidator<CreateIncidentTypeRequest>, CreateIncidentTypeRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdateIncidentTypeRequest>, UpdateIncidentTypeRequestValidator>();
 builder.Services.AddScoped<IValidator<CreateIncidentNatureRequest>, CreateIncidentNatureRequestValidator>();
@@ -165,6 +165,7 @@ builder.Services.AddScoped<IRepository<IncidentStatus>, Repository<IncidentStatu
 builder.Services.AddScoped<IRepository<IncidentImplementation>, Repository<IncidentImplementation>>();
 builder.Services.AddScoped<IRepository<RootCauseAnalysisDetail>, Repository<RootCauseAnalysisDetail>>();
 builder.Services.AddScoped<IRepository<ImplementationBenefit>, Repository<ImplementationBenefit>>();
+builder.Services.AddScoped<IRepository<IncidentComment>, Repository<IncidentComment>>();
 
 // ============================================
 // Service Registration

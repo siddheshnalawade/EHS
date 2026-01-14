@@ -9,22 +9,11 @@ namespace EHS.API.Controllers.v1
     [ApiController]
     [Route("api/v1/production-lines")]
     [Authorize(Roles = "Admin")]
-    public class ProductionLinesController : ControllerBase
+    public class ProductionLinesController(
+        IProductionLineService _productionLineService,
+        IValidator<CreateProductionLineRequest> _createValidator,
+        IValidator<UpdateProductionLineRequest> _updateValidator) : ControllerBase
     {
-        private readonly IProductionLineService _productionLineService;
-        private readonly IValidator<CreateProductionLineRequest> _createValidator;
-        private readonly IValidator<UpdateProductionLineRequest> _updateValidator;
-
-        public ProductionLinesController(
-            IProductionLineService productionLineService,
-            IValidator<CreateProductionLineRequest> createValidator,
-            IValidator<UpdateProductionLineRequest> updateValidator)
-        {
-            _productionLineService = productionLineService;
-            _createValidator = createValidator;
-            _updateValidator = updateValidator;
-        }
-
         /// <summary>
         /// Creates a new production line.
         /// </summary>

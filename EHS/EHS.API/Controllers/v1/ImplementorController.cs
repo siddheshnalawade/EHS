@@ -13,25 +13,12 @@ namespace EHS.API.Controllers.v1
     [ApiController]
     [Route("api/v1/incidents")]
     [Authorize(Roles = "Implementor,Admin")]
-    public class ImplementorController : ControllerBase
+    public class ImplementorController(
+        IIncidentService _incidentService,
+        IValidator<AcceptIncidentRequest> _acceptValidator,
+        IValidator<PassToPeerRequest> _passToPeerValidator,
+        IValidator<UpdateImplementationRequest> _updateImplementationValidator) : ControllerBase
     {
-        private readonly IIncidentService _incidentService;
-        private readonly IValidator<AcceptIncidentRequest> _acceptValidator;
-        private readonly IValidator<PassToPeerRequest> _passToPeerValidator;
-        private readonly IValidator<UpdateImplementationRequest> _updateImplementationValidator;
-
-        public ImplementorController(
-            IIncidentService incidentService,
-            IValidator<AcceptIncidentRequest> acceptValidator,
-            IValidator<PassToPeerRequest> passToPeerValidator,
-            IValidator<UpdateImplementationRequest> updateImplementationValidator)
-        {
-            _incidentService = incidentService;
-            _acceptValidator = acceptValidator;
-            _passToPeerValidator = passToPeerValidator;
-            _updateImplementationValidator = updateImplementationValidator;
-        }
-
         /// <summary>
         /// Retrieves incidents assigned to the current implementor.
         /// </summary>

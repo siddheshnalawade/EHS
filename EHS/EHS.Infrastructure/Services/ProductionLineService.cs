@@ -7,25 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace EHS.Infrastructure.Services
 {
-    public class ProductionLineService : IProductionLineService
+    public class ProductionLineService(
+        IRepository<ProductionLine> _repository,
+        IRepository<Department> _departmentRepository,
+        IMapper _mapper,
+        ILogger<ProductionLineService> _logger) : IProductionLineService
     {
-        private readonly IRepository<ProductionLine> _repository;
-        private readonly IRepository<Department> _departmentRepository;
-        private readonly IMapper _mapper;
-        private readonly ILogger<ProductionLineService> _logger;
-
-        public ProductionLineService(
-            IRepository<ProductionLine> repository,
-            IRepository<Department> departmentRepository,
-            IMapper mapper,
-            ILogger<ProductionLineService> logger)
-        {
-            _repository = repository;
-            _departmentRepository = departmentRepository;
-            _mapper = mapper;
-            _logger = logger;
-        }
-
         public async Task<ApiResponse<ProductionLineResponse>> CreateAsync(CreateProductionLineRequest request)
         {
             try

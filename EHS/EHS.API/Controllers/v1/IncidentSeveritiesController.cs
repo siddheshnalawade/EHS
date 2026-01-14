@@ -12,22 +12,11 @@ namespace EHS.API.Controllers.v1
     [ApiController]
     [Route("api/v1/incident-severities")]
     [Authorize(Roles = "Admin")]
-    public class IncidentSeveritiesController : ControllerBase
+    public class IncidentSeveritiesController(
+        IIncidentSeverityService _incidentSeverityService,
+        IValidator<CreateIncidentSeverityRequest> _createValidator,
+        IValidator<UpdateIncidentSeverityRequest> _updateValidator) : ControllerBase
     {
-        private readonly IIncidentSeverityService _incidentSeverityService;
-        private readonly IValidator<CreateIncidentSeverityRequest> _createValidator;
-        private readonly IValidator<UpdateIncidentSeverityRequest> _updateValidator;
-
-        public IncidentSeveritiesController(
-            IIncidentSeverityService incidentSeverityService,
-            IValidator<CreateIncidentSeverityRequest> createValidator,
-            IValidator<UpdateIncidentSeverityRequest> updateValidator)
-        {
-            _incidentSeverityService = incidentSeverityService;
-            _createValidator = createValidator;
-            _updateValidator = updateValidator;
-        }
-
         /// <summary>
         /// Creates a new incident severity.
         /// </summary>

@@ -1,6 +1,5 @@
 using EHS.Application.Constants;
 using EHS.Application.DTOs;
-using EHS.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

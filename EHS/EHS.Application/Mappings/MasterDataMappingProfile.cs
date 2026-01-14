@@ -11,6 +11,11 @@ namespace EHS.Application.Mappings
     {
         public MasterDataMappingProfile()
         {
+            // Organization mappings
+            CreateMap<CreateOrganizationRequest, Organization>();
+            CreateMap<UpdateOrganizationRequest, Organization>();
+            CreateMap<Organization, OrganizationResponse>();
+
             // Incident Type mappings
             CreateMap<CreateIncidentTypeRequest, IncidentType>();
             CreateMap<UpdateIncidentTypeRequest, IncidentType>();

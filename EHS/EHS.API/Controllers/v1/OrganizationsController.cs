@@ -8,15 +8,15 @@ namespace EHS.API.Controllers.v1
     [ApiController]
     [Route("api/v1/organizations")]
     public class OrganizationsController(
-        IOrganizationService organizationService,
-        IValidator<CreateOrganizationRequest> createValidator,
-        IValidator<UpdateOrganizationRequest> updateValidator
+        IOrganizationService _organizationService,
+        IValidator<CreateOrganizationRequest> _createValidator,
+        IValidator<UpdateOrganizationRequest> _updateValidator
         ) : ControllerBase
     {
         [HttpPost]
         public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizationRequest createRequest)
         {
-            var validationResult = await createValidator.ValidateAsync(createRequest);
+            var validationResult = await _createValidator.ValidateAsync(createRequest);
             if (!validationResult.IsValid)
             {
                 var response = new ApiResponse<OrganizationResponse>
@@ -34,7 +34,7 @@ namespace EHS.API.Controllers.v1
                 return BadRequest(response);
             }
 
-            var result = await organizationService.CreateOrganizationAsync(createRequest);
+            var result = await _organizationService.CreateOrganizationAsync(createRequest);
 
             if (!result.IsSuccessful)
             {
@@ -71,7 +71,7 @@ namespace EHS.API.Controllers.v1
             }
 
             // Call service
-            var result = await organizationService.GetAllOrganizationsAsync(pageNumber, pageSize, searchTerm);
+            var result = await _organizationService.GetAllOrganizationsAsync(pageNumber, pageSize, searchTerm);
 
             if (!result.IsSuccessful)
             {
@@ -85,7 +85,7 @@ namespace EHS.API.Controllers.v1
         public async Task<IActionResult> GetOrganizationById(Guid id)
         {
             // Call service
-            var result = await organizationService.GetOrganizationByIdAsync(id);
+            var result = await _organizationService.GetOrganizationByIdAsync(id);
 
             if (!result.IsSuccessful)
             {
@@ -102,7 +102,7 @@ namespace EHS.API.Controllers.v1
             )
         {
             // Validate request
-            var validationResult = await updateValidator.ValidateAsync(updateRequest);
+            var validationResult = await _updateValidator.ValidateAsync(updateRequest);
             if (!validationResult.IsValid)
             {
                 var response = new ApiResponse<OrganizationResponse>
@@ -121,7 +121,7 @@ namespace EHS.API.Controllers.v1
             }
 
             // Call service
-            var result = await organizationService.UpdateOrganizationAsync(id, updateRequest);
+            var result = await _organizationService.UpdateOrganizationAsync(id, updateRequest);
 
             if (!result.IsSuccessful)
             {
@@ -135,7 +135,7 @@ namespace EHS.API.Controllers.v1
         public async Task<IActionResult> DeleteOrganization([FromRoute] Guid id)
         {
             // Call service
-            var result = await organizationService.DeleteOrganizationAsync(id);
+            var result = await _organizationService.DeleteOrganizationAsync(id);
 
             if (!result.IsSuccessful)
             {

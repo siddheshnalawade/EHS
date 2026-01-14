@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace EHS.API.Controllers
+namespace EHS.API.Controllers.v1
 {
     /// <summary>
     /// Controller for safety officer operations.
@@ -13,28 +13,13 @@ namespace EHS.API.Controllers
     [ApiController]
     [Route("api/v1/incidents")]
     [Authorize(Roles = "SafetyOfficer,Admin")]
-    public class SafetyOfficerController : ControllerBase
+    public class SafetyOfficerController(
+        IIncidentService _incidentService,
+        IValidator<RejectIncidentRequest> _rejectValidator,
+        IValidator<ReassignToInitiatorRequest> _reassignValidator,
+        IValidator<AcceptAndAssignRequest> _acceptAssignValidator,
+        IValidator<CloseIncidentRequest> _closeValidator) : ControllerBase
     {
-        private readonly IIncidentService _incidentService;
-        private readonly IValidator<RejectIncidentRequest> _rejectValidator;
-        private readonly IValidator<ReassignToInitiatorRequest> _reassignValidator;
-        private readonly IValidator<AcceptAndAssignRequest> _acceptAssignValidator;
-        private readonly IValidator<CloseIncidentRequest> _closeValidator;
-
-        public SafetyOfficerController(
-            IIncidentService incidentService,
-            IValidator<RejectIncidentRequest> rejectValidator,
-            IValidator<ReassignToInitiatorRequest> reassignValidator,
-            IValidator<AcceptAndAssignRequest> acceptAssignValidator,
-            IValidator<CloseIncidentRequest> closeValidator)
-        {
-            _incidentService = incidentService;
-            _rejectValidator = rejectValidator;
-            _reassignValidator = reassignValidator;
-            _acceptAssignValidator = acceptAssignValidator;
-            _closeValidator = closeValidator;
-        }
-
         /// <summary>
         /// Retrieves incidents pending review by the current safety officer.
         /// </summary>

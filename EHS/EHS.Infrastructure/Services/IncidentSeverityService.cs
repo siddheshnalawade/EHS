@@ -7,22 +7,11 @@ using Microsoft.Extensions.Logging;
 
 namespace EHS.Infrastructure.Services
 {
-    public class IncidentSeverityService : IIncidentSeverityService
+    public class IncidentSeverityService(
+        IRepository<IncidentSeverity> _repository,
+        IMapper _mapper,
+        ILogger<IncidentSeverityService> _logger) : IIncidentSeverityService
     {
-        private readonly IRepository<IncidentSeverity> _repository;
-        private readonly IMapper _mapper;
-        private readonly ILogger<IncidentSeverityService> _logger;
-
-        public IncidentSeverityService(
-            IRepository<IncidentSeverity> repository,
-            IMapper mapper,
-            ILogger<IncidentSeverityService> logger)
-        {
-            _repository = repository;
-            _mapper = mapper;
-            _logger = logger;
-        }
-
         public async Task<ApiResponse<IncidentSeverityResponse>> CreateAsync(CreateIncidentSeverityRequest request)
         {
             try

@@ -7,22 +7,11 @@ using Microsoft.Extensions.Logging;
 
 namespace EHS.Infrastructure.Services
 {
-    public class IncidentTypeService : IIncidentTypeService
+    public class IncidentTypeService(
+        IRepository<IncidentType> _repository,
+        IMapper _mapper,
+        ILogger<IncidentTypeService> _logger) : IIncidentTypeService
     {
-        private readonly IRepository<IncidentType> _repository;
-        private readonly IMapper _mapper;
-        private readonly ILogger<IncidentTypeService> _logger;
-
-        public IncidentTypeService(
-            IRepository<IncidentType> repository,
-            IMapper mapper,
-            ILogger<IncidentTypeService> logger)
-        {
-            _repository = repository;
-            _mapper = mapper;
-            _logger = logger;
-        }
-
         public async Task<ApiResponse<IncidentTypeResponse>> CreateAsync(CreateIncidentTypeRequest request)
         {
             try

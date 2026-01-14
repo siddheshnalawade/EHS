@@ -9,9 +9,9 @@ using System.Linq.Expressions;
 namespace EHS.Infrastructure.Services
 {
     public class OrganizationService(
-        IRepository<Organization> organizationRepository,
-        IMapper mapper,
-        ILogger<OrganizationService> logger
+        IRepository<Organization> _organizationRepository,
+        IMapper _mapper,
+        ILogger<OrganizationService> _logger
         ) : IOrganizationService
     {
         public async Task<ApiResponse<OrganizationResponse>> CreateOrganizationAsync(CreateOrganizationRequest request)
@@ -19,18 +19,18 @@ namespace EHS.Infrastructure.Services
             try
             {
                 // Map request to Organization entity
-                var organization = mapper.Map<Organization>(request);
+                var organization = _mapper.Map<Organization>(request);
 
                 // Add organization to repository
-                await organizationRepository.AddAsync(organization);
+                await _organizationRepository.AddAsync(organization);
 
                 // Map entity to response DTO
-                var organizationResponse = mapper.Map<OrganizationResponse>(organization);
+                var organizationResponse = _mapper.Map<OrganizationResponse>(organization);
 
                 // Persist changes
-                await organizationRepository.SaveChangesAsync();
+                await _organizationRepository.SaveChangesAsync();
 
-                logger.LogInformation("Organization created successfully. OrganizationId: {OrganizationId}, Name: {Name}",
+                _logger.LogInformation("Organization created successfully. OrganizationId: {OrganizationId}, Name: {Name}",
                   organization.Id, organization.Name);
 
                 return new ApiResponse<OrganizationResponse>
@@ -42,7 +42,7 @@ namespace EHS.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error creating organization. Request: {@Request}", request);
+                _logger.LogError(ex, "Error creating organization. Request: {@Request}", request);
                 return new ApiResponse<OrganizationResponse>
                 {
                     IsSuccessful = false,
@@ -58,7 +58,7 @@ namespace EHS.Infrastructure.Services
                 // Validate ID
                 if (id == Guid.Empty)
                 {
-                    logger.LogWarning("Invalid organization ID provided for deletion: {Id}", id);
+                    _logger.LogWarning("Invalid organization ID provided for deletion: {Id}", id);
                     return new ApiResponse<string>
                     {
                         IsSuccessful = false,
@@ -67,11 +67,11 @@ namespace EHS.Infrastructure.Services
                 }
 
                 // Soft delete organization
-                var deleted = await organizationRepository.DeleteAsync(id);
+                var deleted = await _organizationRepository.DeleteAsync(id);
 
                 if (!deleted)
                 {
-                    logger.LogWarning("Organization not found for deletion. OrganizationId: {Id}", id);
+                    _logger.LogWarning("Organization not found for deletion. OrganizationId: {Id}", id);
                     return new ApiResponse<string>
                     {
                         IsSuccessful = false,
@@ -80,9 +80,9 @@ namespace EHS.Infrastructure.Services
                 }
 
                 // Persist changes
-                await organizationRepository.SaveChangesAsync();
+                await _organizationRepository.SaveChangesAsync();
 
-                logger.LogInformation("Organization deleted successfully. OrganizationId: {Id}", id);
+                _logger.LogInformation("Organization deleted successfully. OrganizationId: {Id}", id);
 
                 return new ApiResponse<string>
                 {
@@ -92,7 +92,7 @@ namespace EHS.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error deleting organization. OrganizationId: {Id}", id);
+                _logger.LogError(ex, "Error deleting organization. OrganizationId: {Id}", id);
                 return new ApiResponse<string>
                 {
                     IsSuccessful = false,
@@ -109,7 +109,7 @@ namespace EHS.Infrastructure.Services
                 var filter = BuildOrganizationFilter(searchTerm);
 
                 // Get paginated results with related entities
-                var (organizations, totalCount) = await organizationRepository.GetPagedAsync(
+                var (organizations, totalCount) = await _organizationRepository.GetPagedAsync(
                     pageNumber,
                     pageSize,
                     filter,
@@ -118,7 +118,7 @@ namespace EHS.Infrastructure.Services
                     o => o.Incidents);
 
                 // Map entities to DTOs
-                var organizationDtos = mapper.Map<List<OrganizationResponse>>(organizations);
+                var organizationDtos = _mapper.Map<List<OrganizationResponse>>(organizations);
 
                 var paginatedResponse = new PaginatedResponse<OrganizationResponse>
                 {
@@ -128,7 +128,7 @@ namespace EHS.Infrastructure.Services
                     TotalCount = totalCount
                 };
 
-                logger.LogInformation("Retrieved {Count} organizations. Page: {PageNumber}, Total: {TotalCount}",
+                _logger.LogInformation("Retrieved {Count} organizations. Page: {PageNumber}, Total: {TotalCount}",
                     organizationDtos.Count, pageNumber, totalCount);
 
                 return new ApiResponse<PaginatedResponse<OrganizationResponse>>
@@ -140,7 +140,7 @@ namespace EHS.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error retrieving organizations. SearchTerm: {SearchTerm}, Page: {PageNumber}",
+                _logger.LogError(ex, "Error retrieving organizations. SearchTerm: {SearchTerm}, Page: {PageNumber}",
                     searchTerm, pageNumber);
                 return new ApiResponse<PaginatedResponse<OrganizationResponse>>
                 {
@@ -157,7 +157,7 @@ namespace EHS.Infrastructure.Services
                 // Validate ID
                 if (id == Guid.Empty)
                 {
-                    logger.LogWarning("Invalid organization ID provided: {Id}", id);
+                    _logger.LogWarning("Invalid organization ID provided: {Id}", id);
                     return new ApiResponse<OrganizationResponse>
                     {
                         IsSuccessful = false,
@@ -165,7 +165,7 @@ namespace EHS.Infrastructure.Services
                     };
                 }
 
-                var organization = await organizationRepository.GetByIdAsync(
+                var organization = await _organizationRepository.GetByIdAsync(
                     id,
                     o => o.Departments,
                     o => o.Incidents);
@@ -179,7 +179,7 @@ namespace EHS.Infrastructure.Services
                     };
                 }
 
-                var resposne = mapper.Map<OrganizationResponse>(organization);
+                var resposne = _mapper.Map<OrganizationResponse>(organization);
                 return new ApiResponse<OrganizationResponse>
                 {
                     IsSuccessful = true,
@@ -189,7 +189,7 @@ namespace EHS.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error retrieving organization by ID: {OrganizationId}", id);
+                _logger.LogError(ex, "Error retrieving organization by ID: {OrganizationId}", id);
                 return new ApiResponse<OrganizationResponse>
                 {
                     IsSuccessful = false,
@@ -214,7 +214,7 @@ namespace EHS.Infrastructure.Services
                 // Validate ID
                 if (id == Guid.Empty)
                 {
-                    logger.LogWarning("Invalid organization ID provided for update: {Id}", id);
+                    _logger.LogWarning("Invalid organization ID provided for update: {Id}", id);
                     return new ApiResponse<OrganizationResponse>
                     {
                         IsSuccessful = false,
@@ -222,11 +222,11 @@ namespace EHS.Infrastructure.Services
                     };
                 }
 
-                var organization = await organizationRepository.GetByIdAsync(id);
+                var organization = await _organizationRepository.GetByIdAsync(id);
 
                 if (organization is null)
                 {
-                    logger.LogWarning("Organization not found for update. OrganizationId: {Id}", id);
+                    _logger.LogWarning("Organization not found for update. OrganizationId: {Id}", id);
                     return new ApiResponse<OrganizationResponse>
                     {
                         IsSuccessful = false,
@@ -234,22 +234,22 @@ namespace EHS.Infrastructure.Services
                     };
                 }
 
-                mapper.Map(request, organization);
+                _mapper.Map(request, organization);
 
-                organizationRepository.UpdateAsync(organization);
+                _organizationRepository.UpdateAsync(organization);
 
-                await organizationRepository.SaveChangesAsync();
+                await _organizationRepository.SaveChangesAsync();
 
                 // Retrieve updated organization with related entities
-                var updatedOrganization = await organizationRepository.GetByIdAsync(
+                var updatedOrganization = await _organizationRepository.GetByIdAsync(
                     id,
                     o => o.Departments,
                     o => o.Incidents);
 
                 // Map entity to response DTO
-                var response = mapper.Map<OrganizationResponse>(updatedOrganization);
+                var response = _mapper.Map<OrganizationResponse>(updatedOrganization);
 
-                logger.LogInformation("Organization updated successfully. OrganizationId: {Id}", id);
+                _logger.LogInformation("Organization updated successfully. OrganizationId: {Id}", id);
 
                 return new ApiResponse<OrganizationResponse>
                 {
@@ -260,7 +260,7 @@ namespace EHS.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error updating organization. OrganizationId: {Id}, Request: {@Request}", id, request);
+                _logger.LogError(ex, "Error updating organization. OrganizationId: {Id}, Request: {@Request}", id, request);
                 return new ApiResponse<OrganizationResponse>
                 {
                     IsSuccessful = false,

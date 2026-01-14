@@ -9,22 +9,11 @@ namespace EHS.API.Controllers.v1
     [ApiController]
     [Route("api/v1/departments")]
     [Authorize(Roles = "Admin")]
-    public class DepartmentsController : ControllerBase
+    public class DepartmentsController(
+        IDepartmentService _departmentService,
+        IValidator<CreateDepartmentRequest> _createValidator,
+        IValidator<UpdateDepartmentRequest> _updateValidator) : ControllerBase
     {
-        private readonly IDepartmentService _departmentService;
-        private readonly IValidator<CreateDepartmentRequest> _createValidator;
-        private readonly IValidator<UpdateDepartmentRequest> _updateValidator;
-
-        public DepartmentsController(
-            IDepartmentService departmentService,
-            IValidator<CreateDepartmentRequest> createValidator,
-            IValidator<UpdateDepartmentRequest> updateValidator)
-        {
-            _departmentService = departmentService;
-            _createValidator = createValidator;
-            _updateValidator = updateValidator;
-        }
-
         /// <summary>
         /// Creates a new department.
         /// </summary>

@@ -14,14 +14,10 @@ namespace EHS.API.Controllers.v1
     [Route("api/v1/incidents")]
     [Authorize]
     public class IncidentsController(
-        IIncidentService incidentService,
-        IValidator<CreateIncidentRequest> createValidator,
-        IValidator<UpdateIncidentRequest> updateValidator) : ControllerBase
+        IIncidentService _incidentService,
+        IValidator<CreateIncidentRequest> _createValidator,
+        IValidator<UpdateIncidentRequest> _updateValidator) : ControllerBase
     {
-        private readonly IIncidentService _incidentService = incidentService;
-        private readonly IValidator<CreateIncidentRequest> _createValidator = createValidator;
-        private readonly IValidator<UpdateIncidentRequest> _updateValidator = updateValidator;
-
         /// <summary>
         /// Creates a new incident report.
         /// </summary>

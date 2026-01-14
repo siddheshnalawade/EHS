@@ -7,25 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace EHS.Infrastructure.Services
 {
-    public class MachineService : IMachineService
+    public class MachineService(
+        IRepository<Machine> _repository,
+        IRepository<ProductionLine> _productionLineRepository,
+        IMapper _mapper,
+        ILogger<MachineService> _logger) : IMachineService
     {
-        private readonly IRepository<Machine> _repository;
-        private readonly IRepository<ProductionLine> _productionLineRepository;
-        private readonly IMapper _mapper;
-        private readonly ILogger<MachineService> _logger;
-
-        public MachineService(
-            IRepository<Machine> repository,
-            IRepository<ProductionLine> productionLineRepository,
-            IMapper mapper,
-            ILogger<MachineService> logger)
-        {
-            _repository = repository;
-            _productionLineRepository = productionLineRepository;
-            _mapper = mapper;
-            _logger = logger;
-        }
-
         public async Task<ApiResponse<MachineResponse>> CreateAsync(CreateMachineRequest request)
         {
             try

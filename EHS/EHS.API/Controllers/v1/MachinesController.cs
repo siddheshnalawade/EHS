@@ -9,22 +9,11 @@ namespace EHS.API.Controllers.v1
     [ApiController]
     [Route("api/v1/machines")]
     [Authorize(Roles = "Admin")]
-    public class MachinesController : ControllerBase
+    public class MachinesController(
+        IMachineService _machineService,
+        IValidator<CreateMachineRequest> _createValidator,
+        IValidator<UpdateMachineRequest> _updateValidator) : ControllerBase
     {
-        private readonly IMachineService _machineService;
-        private readonly IValidator<CreateMachineRequest> _createValidator;
-        private readonly IValidator<UpdateMachineRequest> _updateValidator;
-
-        public MachinesController(
-            IMachineService machineService,
-            IValidator<CreateMachineRequest> createValidator,
-            IValidator<UpdateMachineRequest> updateValidator)
-        {
-            _machineService = machineService;
-            _createValidator = createValidator;
-            _updateValidator = updateValidator;
-        }
-
         /// <summary>
         /// Creates a new machine.
         /// </summary>

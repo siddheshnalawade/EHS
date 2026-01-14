@@ -12,22 +12,11 @@ namespace EHS.API.Controllers.v1
     [ApiController]
     [Route("api/v1/incident-natures")]
     [Authorize(Roles = "Admin")]
-    public class IncidentNaturesController : ControllerBase
+    public class IncidentNaturesController(
+        IIncidentNatureService _incidentNatureService,
+        IValidator<CreateIncidentNatureRequest> _createValidator,
+        IValidator<UpdateIncidentNatureRequest> _updateValidator) : ControllerBase
     {
-        private readonly IIncidentNatureService _incidentNatureService;
-        private readonly IValidator<CreateIncidentNatureRequest> _createValidator;
-        private readonly IValidator<UpdateIncidentNatureRequest> _updateValidator;
-
-        public IncidentNaturesController(
-            IIncidentNatureService incidentNatureService,
-            IValidator<CreateIncidentNatureRequest> createValidator,
-            IValidator<UpdateIncidentNatureRequest> updateValidator)
-        {
-            _incidentNatureService = incidentNatureService;
-            _createValidator = createValidator;
-            _updateValidator = updateValidator;
-        }
-
         /// <summary>
         /// Creates a new incident nature.
         /// </summary>

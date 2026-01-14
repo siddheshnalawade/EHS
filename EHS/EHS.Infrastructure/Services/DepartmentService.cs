@@ -7,25 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace EHS.Infrastructure.Services
 {
-    public class DepartmentService : IDepartmentService
+    public class DepartmentService(
+        IRepository<Department> _repository,
+        IRepository<Organization> _organizationRepository,
+        IMapper _mapper,
+        ILogger<DepartmentService> _logger) : IDepartmentService
     {
-        private readonly IRepository<Department> _repository;
-        private readonly IRepository<Organization> _organizationRepository;
-        private readonly IMapper _mapper;
-        private readonly ILogger<DepartmentService> _logger;
-
-        public DepartmentService(
-            IRepository<Department> repository,
-            IRepository<Organization> organizationRepository,
-            IMapper mapper,
-            ILogger<DepartmentService> logger)
-        {
-            _repository = repository;
-            _organizationRepository = organizationRepository;
-            _mapper = mapper;
-            _logger = logger;
-        }
-
         public async Task<ApiResponse<DepartmentResponse>> CreateAsync(CreateDepartmentRequest request)
         {
             try

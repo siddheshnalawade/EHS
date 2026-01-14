@@ -9,22 +9,11 @@ namespace EHS.API.Controllers.v1
     [ApiController]
     [Route("api/v1/incident-types")]
     [Authorize(Roles = "Admin")]
-    public class IncidentTypesController : ControllerBase
+    public class IncidentTypesController(
+        IIncidentTypeService _incidentTypeService,
+        IValidator<CreateIncidentTypeRequest> _createValidator,
+        IValidator<UpdateIncidentTypeRequest> _updateValidator) : ControllerBase
     {
-        private readonly IIncidentTypeService _incidentTypeService;
-        private readonly IValidator<CreateIncidentTypeRequest> _createValidator;
-        private readonly IValidator<UpdateIncidentTypeRequest> _updateValidator;
-
-        public IncidentTypesController(
-            IIncidentTypeService incidentTypeService,
-            IValidator<CreateIncidentTypeRequest> createValidator,
-            IValidator<UpdateIncidentTypeRequest> updateValidator)
-        {
-            _incidentTypeService = incidentTypeService;
-            _createValidator = createValidator;
-            _updateValidator = updateValidator;
-        }
-
         /// <summary>
         /// Creates a new incident type.
         /// </summary>
