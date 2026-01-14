@@ -42,6 +42,44 @@ namespace EHS.Infrastructure.Services
 
                 var updatedIncident = await GetIncidentWithDetailsAsync(incidentId);
 
+                // Send Email to Safety Officer
+                if (updatedIncident.AssignedToSafetyOfficer != null && !string.IsNullOrEmpty(updatedIncident.AssignedToSafetyOfficer.Email))
+                {
+                    await _emailService.SendEmailAsync(new EmailRequest
+                    {
+                        ToEmail = updatedIncident.AssignedToSafetyOfficer.Email,
+                        Subject = $"Incident Assigned: {updatedIncident.Title}",
+                        TemplateName = "IncidentAssigned.cshtml",
+                        TemplateModel = new
+                        {
+                            RecipientName = updatedIncident.AssignedToSafetyOfficer.UserName,
+                            IncidentId = updatedIncident.Title,
+                            Title = updatedIncident.Title,
+                            SafetyOfficerName = updatedIncident.AssignedToSafetyOfficer.UserName,
+                            ActionUrl = $"http://localhost:4200/incidents/{updatedIncident.Id}"
+                        }
+                    });
+                }
+
+                // Send Email to Initiator
+                if (updatedIncident.InitiatedByUser != null && !string.IsNullOrEmpty(updatedIncident.InitiatedByUser.Email))
+                {
+                    await _emailService.SendEmailAsync(new EmailRequest
+                    {
+                        ToEmail = updatedIncident.InitiatedByUser.Email,
+                        Subject = $"Incident Assigned: {updatedIncident.Title}",
+                        TemplateName = "IncidentAssigned.cshtml",
+                        TemplateModel = new
+                        {
+                            RecipientName = updatedIncident.InitiatedByUser.UserName,
+                            IncidentId = updatedIncident.Title,
+                            Title = updatedIncident.Title,
+                            SafetyOfficerName = updatedIncident.AssignedToSafetyOfficer?.UserName ?? "Safety Officer",
+                            ActionUrl = $"http://localhost:4200/incidents/{updatedIncident.Id}"
+                        }
+                    });
+                }
+
                 _logger.LogInformation("Incident {Id} assigned to safety officer {OfficerId}", incidentId, safetyOfficerId);
 
                 return new ApiResponse<IncidentResponse>
@@ -98,6 +136,25 @@ namespace EHS.Infrastructure.Services
 
                 var updatedIncident = await GetIncidentWithDetailsAsync(incidentId);
 
+                // Send Email to Initiator
+                if (updatedIncident.InitiatedByUser != null && !string.IsNullOrEmpty(updatedIncident.InitiatedByUser.Email))
+                {
+                    await _emailService.SendEmailAsync(new EmailRequest
+                    {
+                        ToEmail = updatedIncident.InitiatedByUser.Email,
+                        Subject = $"Incident Rejected: {updatedIncident.Title}",
+                        TemplateName = "IncidentRejected.cshtml",
+                        TemplateModel = new
+                        {
+                            RecipientName = updatedIncident.InitiatedByUser.UserName,
+                            IncidentId = updatedIncident.Title,
+                            Title = updatedIncident.Title,
+                            Reason = incident.ReviewerComment,
+                            ActionUrl = $"http://localhost:4200/incidents/{updatedIncident.Id}"
+                        }
+                    });
+                }
+
                 _logger.LogInformation("Incident {Id} rejected by user {UserId}", incidentId, userId);
 
                 return new ApiResponse<IncidentResponse>
@@ -150,7 +207,28 @@ namespace EHS.Infrastructure.Services
                 await AddIncidentHistoryAsync(incident.Id, userId, RoleConstant.SafetyOfficer, IncidentAction.AssignedToInitiator);
                 await _incidentRepository.SaveChangesAsync();
 
+                await _incidentRepository.SaveChangesAsync();
+
                 var updatedIncident = await GetIncidentWithDetailsAsync(incidentId);
+
+                // Send Email to Initiator
+                if (updatedIncident.InitiatedByUser != null && !string.IsNullOrEmpty(updatedIncident.InitiatedByUser.Email))
+                {
+                    await _emailService.SendEmailAsync(new EmailRequest
+                    {
+                        ToEmail = updatedIncident.InitiatedByUser.Email,
+                        Subject = $"Incident Reassigned: {updatedIncident.Title}",
+                        TemplateName = "IncidentReassigned.cshtml",
+                        TemplateModel = new
+                        {
+                            RecipientName = updatedIncident.InitiatedByUser.UserName,
+                            IncidentId = updatedIncident.Id,
+                            Title = updatedIncident.Title,
+                            Comments = incident.ReviewerComment,
+                            ActionUrl = $"http://localhost:4200/incidents/{updatedIncident.Id}"
+                        }
+                    });
+                }
 
                 _logger.LogInformation("Incident {Id} reassigned to initiator by user {UserId}", incidentId, userId);
 

@@ -1,5 +1,7 @@
 using AutoMapper;
 using EHS.Application.Interfaces;
+
+// using EHS.Application.Interfaces.Email; // Removed incorrect using
 using EHS.Application.Repositories;
 using EHS.Domain.Entities;
 using Microsoft.Extensions.Logging;
@@ -13,6 +15,8 @@ namespace EHS.Infrastructure.Services
         IRepository<RootCauseAnalysisDetail> _rootCauseRepository,
         IRepository<ImplementationBenefit> _implementationBenefitRepository,
         IRepository<IncidentComment> _commentRepository,
+        IAuthService _authService,
+        ISendEmailService _emailService,
         IMapper _mapper,
         ILogger<IncidentService> _logger) : IIncidentService
     {

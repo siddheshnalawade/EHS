@@ -60,7 +60,11 @@ builder.Services.AddApplicationRepositories();
 // ============================================
 // Service Registration
 // ============================================
+// ============================================
+// Service Registration
+// ============================================
 builder.Services.AddApplicationServices();
+builder.Services.AddEmailServices(builder.Configuration);
 
 // Todo - Add CORS policy
 // Todo - Add Swagger for API documentation

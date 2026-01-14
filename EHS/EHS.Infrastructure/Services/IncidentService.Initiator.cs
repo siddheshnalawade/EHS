@@ -41,6 +41,26 @@ namespace EHS.Infrastructure.Services
 
                 _logger.LogInformation("Incident created by user {UserId}", userId);
 
+                // Send Email Notification
+                var reporter = userId;
+                var emailRequest = new EmailRequest
+                {
+                    ToEmail = "admin@ehs.com", // Todo: Configure Admin Email
+                    Subject = $"New Incident Reported: {incident.Title}",
+                    TemplateName = "IncidentCreated.cshtml",
+                    TemplateModel = new
+                    {
+                        IncidentId = incident.Id,
+                        Title = incident.Title ?? "No Title",
+                        Description = incident.Description ?? "No Description",
+                        ReporterName = reporter,
+                        ActionUrl = $"http://localhost:4200/incidents/{incident.Id}"
+                    }
+                };
+                // Fire and forget email? No, we await it but failures shouldn't block the response?
+                // The EmailService writes to a Channel, so it IS fire and forget effectively (fast).
+                await _emailService.SendEmailAsync(emailRequest);
+
                 return new ApiResponse<IncidentResponse>
                 {
                     IsSuccessful = true,

@@ -15,6 +15,8 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using EHS.Infrastructure.Services.Email;
+using FluentEmail.MailKitSmtp;
 
 namespace EHS.API.Extensions
 {
@@ -149,6 +151,43 @@ namespace EHS.API.Extensions
 
             // Incident Workflow Services
             services.AddScoped<IIncidentService, IncidentService>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddEmailServices(this IServiceCollection services, IConfiguration configuration)
+        {
+            var emailSettings = configuration.GetSection("EmailSettings").Get<EmailSettings>();
+            services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+
+            services.AddFluentEmail(emailSettings.FromEmail, emailSettings.FromName)
+                .AddRazorRenderer()
+                .AddMailKitSender(new SmtpClientOptions
+                {
+                    Server = emailSettings.SmtpHost,
+                    Port = emailSettings.SmtpPort,
+                    User = emailSettings.SmtpUsername,
+                    Password = emailSettings.SmtpPassword,
+                    UseSsl = true,
+                    RequiresAuthentication = true,
+                    SocketOptions = MailKit.Security.SecureSocketOptions.StartTls
+                });
+
+            // For MailKit (more robust):
+            // services.AddFluentEmail(...)
+            //    .AddRazorRenderer()
+            //    .AddMailKitSender(new FluentEmail.MailKit.Smtp.SmtpClientOptions { ... });
+            // Since I installed FluentEmail.MailKit, I should use it.
+            // However, typical FluentEmail setup uses SmtpClient for simplicity or specific MailKit extensions.
+            // Let's stick to the basic SmtpSender for now if MailKit extension is not showing up or needs more config.
+            // Actually, I installed `FluentEmail.MailKit`. Let me check if `AddMailKitSender` is available.
+            // It should be. But I'll use standard SmtpClient for the first pass to be safe if I don't recall the exact MailKit options class.
+            // Wait, the user specifically asked for MailKit.
+            // I should try to use it.
+
+            services.AddSingleton<EmailChannel>();
+            services.AddScoped<ISendEmailService, EmailService>();
+            services.AddHostedService<EmailBackgroundService>();
 
             return services;
         }
