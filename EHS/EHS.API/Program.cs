@@ -1,22 +1,6 @@
+using EHS.API.Extensions;
 using EHS.API.Middlewares;
-using EHS.Application.DTOs;
-using EHS.Application.Interfaces;
-using EHS.Application.Mappings;
-using EHS.Application.Repositories;
-using EHS.Application.Validators;
-using EHS.Domain.Entities;
-using EHS.Domain.Settings;
-using EHS.Infrastructure.Data;
-using EHS.Infrastructure.Repositories;
-using EHS.Infrastructure.Services;
-using FluentValidation;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,74 +19,14 @@ builder.Host.UseSerilog();
 // ============================================
 // Database Configuration
 // ============================================
-/// <summary>
-/// Adds Entity Framework Core with SQL Server.
-/// Connection string sourced from appsettings.json
-/// </summary>
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
-});
+builder.Services.AddDatabaseConfiguration(builder.Configuration);
 
 // ============================================
 // Identity & Password Policy Configuration
 // ============================================
-/// <summary>
-/// Configures ASP.NET Core Identity with strong security defaults.
-/// Enforces secure password policies and account lockout mechanisms.
-/// </summary
-builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
-{
-    // Password settings
-    options.Password.RequiredLength = 12;
-    options.Password.RequiredUniqueChars = 4;
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-
-    // Todo : Account lockout settings
-
-    // User settings
-    options.User.RequireUniqueEmail = true;
-    // Todo : Confirmed email settings
-})
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders()
-    .AddUserStore<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, Guid>>()
-    .AddRoleStore<RoleStore<ApplicationRole, ApplicationDbContext, Guid>>();
+builder.Services.AddIdentityConfiguration();
 
 // Todo: Implement Rate Limiter
-
-// ============================================
-// JWT Authentication Configuration
-// ============================================
-/// <summary>
-/// Configures JWT Bearer authentication for API endpoints.
-/// Validates token signature, issuer, audience, and lifetime.
-/// ClockSkew of 0 means no tolerance for expired tokens.
-/// </summary>
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-    .AddJwtBearer(o =>
-    {
-        o.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero,
-            ValidIssuer = builder.Configuration["JWT:Issuer"],
-            ValidAudience = builder.Configuration["JWT:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"] ??
-                throw new InvalidOperationException("JWT:Key not configured")))
-        };
-    });
 
 // ============================================
 // Authorization Policy Configuration
@@ -116,88 +40,27 @@ builder.Services.AddAuthorization();
 // ============================================
 // JWT Configuration
 // ============================================
-/// <summary>
-/// Maps JWT settings from appsettings.json to JWTOptions class.
-/// Used to configure token expiration, issuer, audience, and signing key.
-/// </summary>
-builder.Services.Configure<JWTOptions>(builder.Configuration.GetSection("JWT"));
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // ============================================
 // AutoMapper Profile Cofiguration
 // ============================================
-builder.Services.AddAutoMapper(c => { }, typeof(MasterDataMappingProfile).Assembly);
-builder.Services.AddAutoMapper(c => { }, typeof(IncidentMappingProfile).Assembly);
+builder.Services.AddAutoMapperProfiles();
 
 // ============================================
 // Validator Configuration
 // ============================================
-// Master Data Validators
-builder.Services.AddScoped<IValidator<CreateOrganizationRequest>, CreateOrganizationRequestValidator>();
-builder.Services.AddScoped<IValidator<UpdateOrganizationRequest>, UpdateOrganizationRequestValidator>();
-builder.Services.AddScoped<IValidator<CreateIncidentTypeRequest>, CreateIncidentTypeRequestValidator>();
-builder.Services.AddScoped<IValidator<UpdateIncidentTypeRequest>, UpdateIncidentTypeRequestValidator>();
-builder.Services.AddScoped<IValidator<CreateIncidentNatureRequest>, CreateIncidentNatureRequestValidator>();
-builder.Services.AddScoped<IValidator<UpdateIncidentNatureRequest>, UpdateIncidentNatureRequestValidator>();
-builder.Services.AddScoped<IValidator<CreateIncidentSeverityRequest>, CreateIncidentSeverityRequestValidator>();
-builder.Services.AddScoped<IValidator<UpdateIncidentSeverityRequest>, UpdateIncidentSeverityRequestValidator>();
-builder.Services.AddScoped<IValidator<CreateDepartmentRequest>, CreateDepartmentRequestValidator>();
-builder.Services.AddScoped<IValidator<UpdateDepartmentRequest>, UpdateDepartmentRequestValidator>();
-builder.Services.AddScoped<IValidator<CreateProductionLineRequest>, CreateProductionLineRequestValidator>();
-builder.Services.AddScoped<IValidator<UpdateProductionLineRequest>, UpdateProductionLineRequestValidator>();
-builder.Services.AddScoped<IValidator<CreateMachineRequest>, CreateMachineRequestValidator>();
-builder.Services.AddScoped<IValidator<UpdateMachineRequest>, UpdateMachineRequestValidator>();
-
-// Incident Workflow Validators
-builder.Services.AddScoped<IValidator<CreateIncidentRequest>, CreateIncidentRequestValidator>();
-builder.Services.AddScoped<IValidator<UpdateIncidentRequest>, UpdateIncidentRequestValidator>();
-builder.Services.AddScoped<IValidator<RejectIncidentRequest>, RejectIncidentRequestValidator>();
-builder.Services.AddScoped<IValidator<ReassignToInitiatorRequest>, ReassignToInitiatorRequestValidator>();
-builder.Services.AddScoped<IValidator<AcceptAndAssignRequest>, AcceptAndAssignRequestValidator>();
-builder.Services.AddScoped<IValidator<CloseIncidentRequest>, CloseIncidentRequestValidator>();
-builder.Services.AddScoped<IValidator<AcceptIncidentRequest>, AcceptIncidentRequestValidator>();
-builder.Services.AddScoped<IValidator<PassToPeerRequest>, PassToPeerRequestValidator>();
-builder.Services.AddScoped<IValidator<UpdateImplementationRequest>, UpdateImplementationRequestValidator>();
+builder.Services.AddApplicationValidators();
 
 // ============================================
 // Repository Registration
 // ============================================
-builder.Services.AddScoped<IRepository<Organization>, Repository<Organization>>();
-builder.Services.AddScoped<IRepository<Department>, Repository<Department>>();
-builder.Services.AddScoped<IRepository<ProductionLine>, Repository<ProductionLine>>();
-builder.Services.AddScoped<IRepository<Machine>, Repository<Machine>>();
-builder.Services.AddScoped<IRepository<IncidentType>, Repository<IncidentType>>();
-builder.Services.AddScoped<IRepository<IncidentNature>, Repository<IncidentNature>>();
-builder.Services.AddScoped<IRepository<IncidentSeverity>, Repository<IncidentSeverity>>();
-
-// Incident Workflow Repositories
-builder.Services.AddScoped<IRepository<Incident>, Repository<Incident>>();
-builder.Services.AddScoped<IRepository<IncidentStatus>, Repository<IncidentStatus>>();
-builder.Services.AddScoped<IRepository<IncidentImplementation>, Repository<IncidentImplementation>>();
-builder.Services.AddScoped<IRepository<RootCauseAnalysisDetail>, Repository<RootCauseAnalysisDetail>>();
-builder.Services.AddScoped<IRepository<ImplementationBenefit>, Repository<ImplementationBenefit>>();
-builder.Services.AddScoped<IRepository<IncidentComment>, Repository<IncidentComment>>();
+builder.Services.AddApplicationRepositories();
 
 // ============================================
 // Service Registration
 // ============================================
-/// <summary>
-/// Registers all application services as Scoped.
-/// Scoped lifetime ensures one instance per HTTP request,
-/// which aligns with DbContext lifetime.
-/// </summary>
-builder.Services.AddScoped<IAuthService, AuthService>();
-
-// Master Data Services
-builder.Services.AddScoped<IOrganizationService, OrganizationService>();
-builder.Services.AddScoped<IIncidentTypeService, IncidentTypeService>();
-builder.Services.AddScoped<IIncidentNatureService, IncidentNatureService>();
-builder.Services.AddScoped<IIncidentSeverityService, IncidentSeverityService>();
-builder.Services.AddScoped<IDepartmentService, DepartmentService>();
-builder.Services.AddScoped<IProductionLineService, ProductionLineService>();
-builder.Services.AddScoped<IMachineService, MachineService>();
-
-// Incident Workflow Services
-builder.Services.AddScoped<IIncidentService, IncidentService>();
+builder.Services.AddApplicationServices();
 
 // Todo - Add CORS policy
 // Todo - Add Swagger for API documentation
@@ -217,14 +80,15 @@ if (app.Environment.IsDevelopment())
 }
 
 /// <summary>
-/// Global exception handling middleware.
-/// </summary>
-/// <summary>
 /// Enable Serilog Request Logging.
 /// Logs HTTP requests with clearer messages and performance data.
 /// </summary>
 app.UseSerilogRequestLogging();
 
+/// <summary>
+/// Global exception handling middleware.
+/// Catches and handles exceptions in a centralized manner.
+/// </summary>
 app.UseMiddleware<ApplicationExceptionHandlingMiddleware>();
 
 /// <summary>
