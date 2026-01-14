@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EHS.API.Controllers.v1
 {
     [ApiController]
-    [Route("api/v1/[controller]")]
+    [Route("api/v1/auth")]
     public class AuthController(IAuthService _authService) : ControllerBase
     {
         [HttpPost("register")]

@@ -11,23 +11,16 @@ namespace EHS.API.Controllers.v1
     /// Controller for incident management operations (Initiator role).
     /// </summary>
     [ApiController]
-    [Route("api/v1/[controller]")]
+    [Route("api/v1/incidents")]
     [Authorize]
-    public class IncidentsController : ControllerBase
+    public class IncidentsController(
+        IIncidentService incidentService,
+        IValidator<CreateIncidentRequest> createValidator,
+        IValidator<UpdateIncidentRequest> updateValidator) : ControllerBase
     {
-        private readonly IIncidentService _incidentService;
-        private readonly IValidator<CreateIncidentRequest> _createValidator;
-        private readonly IValidator<UpdateIncidentRequest> _updateValidator;
-
-        public IncidentsController(
-            IIncidentService incidentService,
-            IValidator<CreateIncidentRequest> createValidator,
-            IValidator<UpdateIncidentRequest> updateValidator)
-        {
-            _incidentService = incidentService;
-            _createValidator = createValidator;
-            _updateValidator = updateValidator;
-        }
+        private readonly IIncidentService _incidentService = incidentService;
+        private readonly IValidator<CreateIncidentRequest> _createValidator = createValidator;
+        private readonly IValidator<UpdateIncidentRequest> _updateValidator = updateValidator;
 
         /// <summary>
         /// Creates a new incident report.

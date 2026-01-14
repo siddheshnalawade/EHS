@@ -287,7 +287,7 @@ namespace EHS.Infrastructure.Data
 
             // Performance indexes
             modelBuilder.Entity<Incident>()
-                .HasIndex(i => i.IncidentNumber)
+                .HasIndex(i => i.Id)
                 .IsUnique();
 
             modelBuilder.Entity<Incident>()

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EHS.API.Controllers.v1
 {
     [ApiController]
-    [Route("api/v1/[controller]")]
+    [Route("api/v1/organizations")]
     public class OrganizationsController(
         IOrganizationService organizationService,
         IValidator<CreateOrganizationRequest> createValidator,

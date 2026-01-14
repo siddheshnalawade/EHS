@@ -13,7 +13,7 @@ namespace EHS.Application.Mappings
         {
             // Incident mappings
             CreateMap<CreateIncidentRequest, Incident>();
-            
+
             CreateMap<UpdateIncidentRequest, Incident>()
                 .ForMember(dest => dest.OrganizationId, opt => opt.Ignore()); // Cannot change organization
 

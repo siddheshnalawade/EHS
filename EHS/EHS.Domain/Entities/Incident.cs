@@ -7,10 +7,9 @@ namespace EHS.Domain.Entities
     public class Incident : BaseEntity
     {
         /// <summary>
-        /// Unique incident reference number (auto-generated).
-        /// Format: INC-YYYY-XXXXXX
+        /// Unique identifier for the incident.
         /// </summary>
-        public string IncidentNumber { get; set; } = string.Empty;
+        public Guid Id { get; set; }
 
         /// <summary>
         /// Foreign key for the incident type (Near Miss, Unsafe Condition, Unsafe Action).

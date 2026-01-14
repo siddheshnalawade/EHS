@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EHS.API.Controllers.v1
 {
     [ApiController]
-    [Route("api/v1/[controller]")]
+    [Route("api/v1/machines")]
     [Authorize(Roles = "Admin")]
     public class MachinesController : ControllerBase
     {
