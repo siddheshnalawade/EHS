@@ -147,7 +147,8 @@ namespace EHS.API.Controllers.v1
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignToSafetyOfficer(Guid id, [FromBody] AssignToSafetyOfficerRequest request)
         {
-            var result = await _incidentService.AssignToSafetyOfficerAsync(id, request.SafetyOfficerId);
+            var userId = GetCurrentUserId();
+            var result = await _incidentService.AssignToSafetyOfficerAsync(id, request.SafetyOfficerId, userId);
             return result.IsSuccessful ? Ok(result) : BadRequest(result);
         }
 

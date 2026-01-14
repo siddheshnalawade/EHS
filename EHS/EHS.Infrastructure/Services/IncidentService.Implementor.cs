@@ -58,6 +58,8 @@ namespace EHS.Infrastructure.Services
                 incident.IncidentStatusId = inProgressStatus.Id;
                 _incidentRepository.UpdateAsync(incident);
 
+                await AddIncidentHistoryAsync(incidentId, userId, RoleConstant.Implementor, IncidentAction.ImplementorAccepted);
+
                 await _implementationRepository.SaveChangesAsync();
 
                 var updatedIncident = await GetIncidentWithDetailsAsync(incidentId);
@@ -210,6 +212,12 @@ namespace EHS.Infrastructure.Services
 
                 _implementationRepository.UpdateAsync(incident.Implementation);
                 _incidentRepository.UpdateAsync(incident);
+
+                if (request.MarkAsCompleted)
+                {
+                    await AddIncidentHistoryAsync(incidentId, userId, RoleConstant.Implementor, IncidentAction.ImplementationCompleted);
+                }
+
                 await _implementationRepository.SaveChangesAsync();
 
                 var updatedIncident = await GetIncidentWithDetailsAsync(incidentId);

@@ -32,6 +32,7 @@ namespace EHS.Infrastructure.Services
                 incident.IncidentStatusId = submittedStatus.Id;
 
                 await _incidentRepository.AddAsync(incident);
+                await AddIncidentHistoryAsync(incident.Id, userId, RoleConstant.Initiator, IncidentAction.Created);
 
                 await _incidentRepository.SaveChangesAsync();
 

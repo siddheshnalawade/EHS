@@ -21,7 +21,7 @@ namespace EHS.Application.Interfaces
         Task<ApiResponse<PaginatedResponse<IncidentListResponse>>> GetMyIncidentsAsync(Guid userId, int pageNumber = 1, int pageSize = 10);
 
         // Safety Officer operations
-        Task<ApiResponse<IncidentResponse>> AssignToSafetyOfficerAsync(Guid incidentId, Guid safetyOfficerId);
+        Task<ApiResponse<IncidentResponse>> AssignToSafetyOfficerAsync(Guid incidentId, Guid safetyOfficerId, Guid userId);
 
         Task<ApiResponse<IncidentResponse>> RejectIncidentAsync(Guid incidentId, RejectIncidentRequest request, Guid userId);
 

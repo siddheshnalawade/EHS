@@ -7,7 +7,7 @@ namespace EHS.Infrastructure.Services
 {
     public partial class IncidentService
     {
-        public async Task<ApiResponse<IncidentResponse>> AssignToSafetyOfficerAsync(Guid incidentId, Guid safetyOfficerId)
+        public async Task<ApiResponse<IncidentResponse>> AssignToSafetyOfficerAsync(Guid incidentId, Guid safetyOfficerId, Guid userId)
         {
             try
             {
@@ -37,6 +37,7 @@ namespace EHS.Infrastructure.Services
                 incident.IncidentStatusId = assignedStatus.Id;
 
                 _incidentRepository.UpdateAsync(incident);
+                await AddIncidentHistoryAsync(incident.Id, userId, RoleConstant.Admin, IncidentAction.AssignedToSafetyOfficer);
                 await _incidentRepository.SaveChangesAsync();
 
                 var updatedIncident = await GetIncidentWithDetailsAsync(incidentId);
@@ -92,6 +93,7 @@ namespace EHS.Infrastructure.Services
                 incident.ReviewerComment = request.Comment;
 
                 _incidentRepository.UpdateAsync(incident);
+                await AddIncidentHistoryAsync(incident.Id, userId, RoleConstant.SafetyOfficer, IncidentAction.SafetyOfficerRejected);
                 await _incidentRepository.SaveChangesAsync();
 
                 var updatedIncident = await GetIncidentWithDetailsAsync(incidentId);
@@ -145,6 +147,7 @@ namespace EHS.Infrastructure.Services
                 incident.ReviewerComment = request.Comment;
 
                 _incidentRepository.UpdateAsync(incident);
+                await AddIncidentHistoryAsync(incident.Id, userId, RoleConstant.SafetyOfficer, IncidentAction.AssignedToInitiator);
                 await _incidentRepository.SaveChangesAsync();
 
                 var updatedIncident = await GetIncidentWithDetailsAsync(incidentId);
@@ -201,6 +204,7 @@ namespace EHS.Infrastructure.Services
                 incident.ReviewerComment = request.Comment;
 
                 _incidentRepository.UpdateAsync(incident);
+                await AddIncidentHistoryAsync(incident.Id, userId, RoleConstant.SafetyOfficer, IncidentAction.AssignedToImplementor);
                 await _incidentRepository.SaveChangesAsync();
 
                 var updatedIncident = await GetIncidentWithDetailsAsync(incidentId);
@@ -300,6 +304,7 @@ namespace EHS.Infrastructure.Services
                 incident.ClosureComment = request.ClosureComment;
 
                 _incidentRepository.UpdateAsync(incident);
+                await AddIncidentHistoryAsync(incident.Id, userId, RoleConstant.SafetyOfficer, IncidentAction.IncidentClosed);
                 await _incidentRepository.SaveChangesAsync();
 
                 var updatedIncident = await GetIncidentWithDetailsAsync(incidentId);

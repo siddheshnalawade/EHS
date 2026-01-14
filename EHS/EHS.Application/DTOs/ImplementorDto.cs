@@ -28,6 +28,8 @@ namespace EHS.Application.DTOs
         public string? AdditionalRemarks { get; set; }
         public List<Guid> BenefitIds { get; set; } = new();
         public List<RootCauseDetailDto> RootCauseDetails { get; set; } = new();
+
+        public bool MarkAsCompleted { get; set; }
     }
 
     /// <summary>
