@@ -25,7 +25,7 @@ namespace EHS.API.Controllers.v1
         /// <returns>Created incident</returns>
         [HttpPost]
         [Authorize(Roles = "Initiator,Admin")]
-        public async Task<IActionResult> CreateIncident([FromBody] CreateIncidentRequest request)
+        public async Task<IActionResult> CreateIncident([FromForm] CreateIncidentRequest request)
         {
             var validationResult = await _createValidator.ValidateAsync(request);
             if (!validationResult.IsValid)

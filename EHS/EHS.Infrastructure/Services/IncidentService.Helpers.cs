@@ -57,7 +57,18 @@ namespace EHS.Infrastructure.Services
                 i => i.Implementation!.RootCauseDetails
             );
 
-            return incidents.FirstOrDefault();
+            var incident = incidents.FirstOrDefault();
+
+            if (incident != null && incident.Attachments != null && incident.Attachments.Count > 0)
+            {
+                foreach (var attachment in incident.Attachments)
+                {
+                    // This generates a temporary SAS URL valid for 60 minutes
+                    attachment.FilePath = await _fileStorageService.GetFileUrlAsync(attachment.FilePath, "incidents", 60);
+                }
+            }
+
+            return incident;
         }
     }
 }

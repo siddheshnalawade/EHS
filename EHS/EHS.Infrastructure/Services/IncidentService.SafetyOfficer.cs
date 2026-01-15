@@ -207,8 +207,6 @@ namespace EHS.Infrastructure.Services
                 await AddIncidentHistoryAsync(incident.Id, userId, RoleConstant.SafetyOfficer, IncidentAction.AssignedToInitiator);
                 await _incidentRepository.SaveChangesAsync();
 
-                await _incidentRepository.SaveChangesAsync();
-
                 var updatedIncident = await GetIncidentWithDetailsAsync(incidentId);
 
                 // Send Email to Initiator

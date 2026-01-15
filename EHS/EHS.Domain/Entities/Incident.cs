@@ -211,5 +211,10 @@ namespace EHS.Domain.Entities
         /// Navigation property for audit logs related to this incident.
         /// </summary>
         public List<AuditLog> AuditLogs { get; set; } = [];
+
+        /// <summary>
+        /// Navigation property for file attachments/evidence.
+        /// </summary>
+        public List<IncidentAttachment> Attachments { get; set; } = [];
     }
 }

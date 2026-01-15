@@ -1,6 +1,7 @@
 using EHS.API.Extensions;
 using EHS.API.Middlewares;
 using Serilog;
+using Microsoft.Extensions.Azure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,10 +62,9 @@ builder.Services.AddApplicationRepositories();
 // Service Registration
 // ============================================
 // ============================================
-// Service Registration
-// ============================================
 builder.Services.AddApplicationServices();
 builder.Services.AddEmailServices(builder.Configuration);
+builder.Services.AddFileStorageServices(builder.Configuration);
 
 // Todo - Add CORS policy
 // Todo - Add Swagger for API documentation

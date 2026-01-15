@@ -18,6 +18,7 @@ namespace EHS.Application.DTOs
         public string Description { get; set; } = string.Empty;
         public string IncidentArea { get; set; } = string.Empty;
         public string ProposedSolution { get; set; } = string.Empty;
+        public List<Microsoft.AspNetCore.Http.IFormFile>? EvidenceFiles { get; set; }
     }
 
     /// <summary>
@@ -108,6 +109,8 @@ namespace EHS.Application.DTOs
 
         // Implementation
         public IncidentImplementationResponse? Implementation { get; set; }
+
+        public List<IncidentAttachmentResponse> Attachments { get; set; } = [];
     }
 
     /// <summary>

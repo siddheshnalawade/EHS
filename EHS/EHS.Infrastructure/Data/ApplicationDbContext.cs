@@ -32,6 +32,7 @@ namespace EHS.Infrastructure.Data
         /// Core incident management entities.
         /// </summary>
         public DbSet<Incident> Incidents { get; set; }
+        public DbSet<IncidentAttachment> IncidentAttachments { get; set; }
 
         public DbSet<IncidentComment> IncidentComments { get; set; }
 
@@ -275,6 +276,21 @@ namespace EHS.Infrastructure.Data
                 .HasForeignKey(ald => ald.AuditLogId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Incident -> IncidentAttachment (One-to-Many)
+            modelBuilder.Entity<Incident>()
+                .HasMany(i => i.Attachments)
+                .WithOne(a => a.Incident)
+                .HasForeignKey(a => a.IncidentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // IncidentAttachment -> UploadedByUser
+            modelBuilder.Entity<IncidentAttachment>()
+                .HasOne(a => a.UploadedByUser)
+                .WithMany()
+                .HasForeignKey(a => a.UploadedByUserId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired(true);
+
             // AuditLog -> Incident (Many-to-One, Optional)
             modelBuilder.Entity<AuditLog>()
                 .HasOne(al => al.Incident)
@@ -358,6 +374,9 @@ namespace EHS.Infrastructure.Data
 
             modelBuilder.Entity<IncidentComment>()
                 .HasQueryFilter(ic => !ic.IsDeleted && !ic.Incident.IsDeleted);
+
+            modelBuilder.Entity<IncidentAttachment>()
+                .HasQueryFilter(ia => !ia.IsDeleted && !ia.Incident.IsDeleted);
 
             modelBuilder.Entity<RootCauseAnalysisDetail>()
                 .HasQueryFilter(rca => !rca.IsDeleted && !rca.Implementation.IsDeleted);

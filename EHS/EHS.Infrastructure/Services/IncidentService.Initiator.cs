@@ -34,6 +34,28 @@ namespace EHS.Infrastructure.Services
                 await _incidentRepository.AddAsync(incident);
                 await AddIncidentHistoryAsync(incident.Id, userId, RoleConstant.Initiator, IncidentAction.Created);
 
+                // Handle Evidence Files
+                if (request.EvidenceFiles != null && request.EvidenceFiles.Count > 0)
+                {
+                    foreach (var file in request.EvidenceFiles)
+                    {
+                        var fileUrl = await _fileStorageService.UploadFileAsync(file, "incidents");
+                        
+                        var attachment = new IncidentAttachment
+                        {
+                            IncidentId = incident.Id,
+                            FileName = file.FileName,
+                            FilePath = fileUrl,
+                            AttachmentType = "InitialEvidence",
+                            ContentType = file.ContentType,
+                            FileSize = file.Length,
+                            UploadedByUserId = userId
+                        };
+
+                        await _attachmentRepository.AddAsync(attachment);
+                    }
+                }
+
                 await _incidentRepository.SaveChangesAsync();
 
                 // Retrieve with navigation properties
@@ -66,6 +88,15 @@ namespace EHS.Infrastructure.Services
                     IsSuccessful = true,
                     Data = _mapper.Map<IncidentResponse>(createdIncident),
                     Message = "Incident created successfully."
+                };
+            }
+            catch (ArgumentException ex)
+            {
+                // File validation error
+                 return new ApiResponse<IncidentResponse>
+                {
+                    IsSuccessful = false,
+                    Message = ex.Message
                 };
             }
             catch (Exception ex)

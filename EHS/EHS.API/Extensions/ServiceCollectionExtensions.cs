@@ -17,6 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using EHS.Infrastructure.Services.Email;
 using FluentEmail.MailKitSmtp;
+using EHS.Infrastructure.Services.Storage;
 
 namespace EHS.API.Extensions
 {
@@ -132,6 +133,7 @@ namespace EHS.API.Extensions
             services.AddScoped<IRepository<RootCauseAnalysisDetail>, Repository<RootCauseAnalysisDetail>>();
             services.AddScoped<IRepository<ImplementationBenefit>, Repository<ImplementationBenefit>>();
             services.AddScoped<IRepository<IncidentComment>, Repository<IncidentComment>>();
+            services.AddScoped<IRepository<IncidentAttachment>, Repository<IncidentAttachment>>();
 
             return services;
         }
@@ -188,6 +190,25 @@ namespace EHS.API.Extensions
             services.AddSingleton<EmailChannel>();
             services.AddScoped<ISendEmailService, EmailService>();
             services.AddHostedService<EmailBackgroundService>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddFileStorageServices(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<FileStorageSettings>(configuration.GetSection("FileStorage"));
+            services.AddHttpContextAccessor(); // Needed for Local Storage URL generation
+
+            var settings = configuration.GetSection("FileStorage").Get<FileStorageSettings>();
+
+            if (settings != null && settings.Provider.Equals("Azure", StringComparison.OrdinalIgnoreCase))
+            {
+                services.AddScoped<IFileStorageService, AzureBlobStorageService>();
+            }
+            else
+            {
+                services.AddScoped<IFileStorageService, LocalFileStorageService>();
+            }
 
             return services;
         }

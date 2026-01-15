@@ -213,6 +213,28 @@ namespace EHS.Infrastructure.Services
                 _implementationRepository.UpdateAsync(incident.Implementation);
                 _incidentRepository.UpdateAsync(incident);
 
+                // Handle Evidence Files
+                if (request.EvidenceFiles != null && request.EvidenceFiles.Count > 0)
+                {
+                    foreach (var file in request.EvidenceFiles)
+                    {
+                        var fileUrl = await _fileStorageService.UploadFileAsync(file, "incidents");
+                        
+                        var attachment = new IncidentAttachment
+                        {
+                            IncidentId = incident.Id,
+                            FileName = file.FileName,
+                            FilePath = fileUrl,
+                            AttachmentType = "ImplementorEvidence",
+                            ContentType = file.ContentType,
+                            FileSize = file.Length,
+                            UploadedByUserId = userId
+                        };
+
+                        await _attachmentRepository.AddAsync(attachment);
+                    }
+                }
+
                 if (request.MarkAsCompleted)
                 {
                     await AddIncidentHistoryAsync(incidentId, userId, RoleConstant.Implementor, IncidentAction.ImplementationCompleted);
@@ -229,6 +251,15 @@ namespace EHS.Infrastructure.Services
                     IsSuccessful = true,
                     Data = _mapper.Map<IncidentResponse>(updatedIncident),
                     Message = "Implementation updated successfully."
+                };
+            }
+            catch (ArgumentException ex)
+            {
+                // File validation error
+                 return new ApiResponse<IncidentResponse>
+                {
+                    IsSuccessful = false,
+                    Message = ex.Message
                 };
             }
             catch (Exception ex)
