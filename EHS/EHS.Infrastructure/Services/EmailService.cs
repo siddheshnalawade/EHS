@@ -6,16 +6,16 @@ namespace EHS.Infrastructure.Services
 {
     public class EmailService : ISendEmailService
     {
-        private readonly EmailChannel _emailChannel;
+        private readonly IEmailQueueProducer _emailQueue;
 
-        public EmailService(EmailChannel emailChannel)
+        public EmailService(IEmailQueueProducer emailQueue)
         {
-            _emailChannel = emailChannel;
+            _emailQueue = emailQueue;
         }
 
         public async Task SendEmailAsync(EmailRequest request)
         {
-            await _emailChannel.AddEmailAsync(request);
+            await _emailQueue.PublishEmailAsync(request);
         }
     }
 }

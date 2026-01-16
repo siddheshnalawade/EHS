@@ -81,6 +81,20 @@ namespace EHS.Infrastructure.Services
                 // The EmailService writes to a Channel, so it IS fire and forget effectively (fast).
                 await _emailService.SendEmailAsync(emailRequest);
 
+                // Send SMS Notification
+                try 
+                {
+                    // Admin Phone Number (Mocked)
+                    var adminPhone = "+919999999999"; 
+                    var smsMessage = $"New Incident: {incident.Title}. Severity: {incident.IncidentSeverity?.Name ?? "Unknown"}.";
+                    await _smsService.SendSmsAsync(adminPhone, smsMessage);
+                }
+                catch(Exception ex)
+                {
+                    // SMS failure shouldn't fail the request
+                    _logger.LogError(ex, "Failed to send SMS notification.");
+                }
+
                 return new ApiResponse<IncidentResponse>
                 {
                     IsSuccessful = true,

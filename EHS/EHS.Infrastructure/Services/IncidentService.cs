@@ -17,6 +17,7 @@ namespace EHS.Infrastructure.Services
         IRepository<IncidentComment> _commentRepository,
         IAuthService _authService,
         ISendEmailService _emailService,
+        ISmsService _smsService,
         IFileStorageService _fileStorageService,
         IRepository<IncidentAttachment> _attachmentRepository,
         IMapper _mapper,

@@ -62,9 +62,14 @@ builder.Services.AddApplicationRepositories();
 // Service Registration
 // ============================================
 // ============================================
-builder.Services.AddApplicationServices();
+// ============================================
+builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddEmailServices(builder.Configuration);
 builder.Services.AddFileStorageServices(builder.Configuration);
+
+// Health Checks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<EHS.Infrastructure.Data.ApplicationDbContext>();
 
 // Todo - Add CORS policy
 // Todo - Add Swagger for API documentation
@@ -114,6 +119,7 @@ app.UseAuthorization();
 /// Registers all API endpoints defined in controllers.
 /// </summary>
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 /// <summary>
 /// Runs the application asynchronously.

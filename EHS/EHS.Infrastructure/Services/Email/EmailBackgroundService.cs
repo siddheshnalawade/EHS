@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Polly;
+using Polly.Retry;
 
 namespace EHS.Infrastructure.Services
 {
@@ -33,47 +35,55 @@ namespace EHS.Infrastructure.Services
             {
                 try
                 {
-                    using var scope = _serviceProvider.CreateScope();
-                    var fluentEmail = scope.ServiceProvider.GetRequiredService<IFluentEmail>();
-                    var emailSettings = scope.ServiceProvider.GetRequiredService<IOptions<EmailSettings>>().Value;
+                    // Define Retry Policy
+                    var retryPolicy = Policy
+                        .Handle<Exception>()
+                        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                            (exception, timeSpan, retryCount, context) =>
+                            {
+                                _logger.LogWarning($"Email failed. Retry {retryCount} in {timeSpan.TotalSeconds}s. Error: {exception.Message}");
+                            });
 
-                    var email = fluentEmail
-                        .To(request.ToEmail)
-                        .Subject(request.Subject);
-
-                    if (!string.IsNullOrEmpty(request.TemplateName))
+                    await retryPolicy.ExecuteAsync(async () =>
                     {
-                        // Assuming templates are meant to be embedded resources or files
-                        // For FluentEmail.Razor, we typically pass the template string or a file path
-                        // Here we will use the embedded resource approach or simple file loading
-                        // properly referencing the assembly
-                        
-                        string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", request.TemplateName);
-                        _logger.LogInformation($"Attempting to load email template from: {templatePath}");
-                        
-                        if (File.Exists(templatePath))
+                        using var scope = _serviceProvider.CreateScope();
+                        var fluentEmail = scope.ServiceProvider.GetRequiredService<IFluentEmail>();
+                        // var emailSettings = scope.ServiceProvider.GetRequiredService<IOptions<EmailSettings>>().Value; // Not strictly needed inside if not re-configuring, but scope is fresh.
+
+                        var email = fluentEmail
+                            .To(request.ToEmail)
+                            .Subject(request.Subject);
+
+                        if (!string.IsNullOrEmpty(request.TemplateName))
                         {
-                             await email.UsingTemplateFromFile(templatePath, request.TemplateModel).SendAsync(stoppingToken);
+                            string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", request.TemplateName);
+                            // _logger.LogInformation($"Attempting to load email template from: {templatePath}"); // Reduce verbosity
+                            
+                            if (File.Exists(templatePath))
+                            {
+                                    await email.UsingTemplateFromFile(templatePath, request.TemplateModel).SendAsync(stoppingToken);
+                            }
+                            else
+                            {
+                                string msg = $"Email template not found at {templatePath}.";
+                                _logger.LogWarning(msg);
+                                email.Body(request.Body ?? msg, isHtml: true);
+                                await email.SendAsync(stoppingToken);
+                            }
                         }
                         else
                         {
-                            string msg = $"Email template not found at {templatePath}.";
-                            _logger.LogWarning(msg);
-                            email.Body(request.Body ?? msg, isHtml: true);
+                            email.Body(request.Body, isHtml: true);
                             await email.SendAsync(stoppingToken);
                         }
-                    }
-                    else
-                    {
-                        email.Body(request.Body, isHtml: true);
-                        await email.SendAsync(stoppingToken);
-                    }
 
-                    _logger.LogInformation($"Email sent to {request.ToEmail}");
+                        _logger.LogInformation($"Email sent to {request.ToEmail}");
+                    });
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Error processing email for {request.ToEmail}");
+                    // If all retries fail:
+                    _logger.LogError(ex, $"FATAL: Error sending email to {request.ToEmail} after retries.");
                 }
             }
         }

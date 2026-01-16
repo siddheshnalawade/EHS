@@ -138,7 +138,7 @@ namespace EHS.API.Extensions
             return services;
         }
 
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IAuthService, AuthService>();
 
@@ -153,6 +153,23 @@ namespace EHS.API.Extensions
 
             // Incident Workflow Services
             services.AddScoped<IIncidentService, IncidentService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ILookupService, LookupService>();
+
+            // SMS Services
+            var smsSettings = configuration.GetSection("SmsSettings").Get<SmsSettings>();
+            if (smsSettings != null && smsSettings.UseAzureServiceBus)
+            {
+                 services.AddScoped<ISmsQueueProducer, EHS.Infrastructure.Services.Sms.AzureServiceBusSmsProducer>();
+                 services.AddHostedService<EHS.Infrastructure.Services.Sms.AzureServiceBusSmsConsumer>();
+            }
+            else
+            {
+                services.AddSingleton<EHS.Infrastructure.Services.Sms.SmsChannel>();
+                services.AddScoped<ISmsQueueProducer, EHS.Infrastructure.Services.InMemorySmsQueueProducer>();
+                services.AddHostedService<EHS.Infrastructure.Services.SmsBackgroundService>(); 
+            }
+            services.AddScoped<ISmsService, SmsService>();
 
             return services;
         }
@@ -163,39 +180,51 @@ namespace EHS.API.Extensions
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
 
             services.AddFluentEmail(emailSettings.FromEmail, emailSettings.FromName)
-                .AddRazorRenderer()
-                .AddMailKitSender(new SmtpClientOptions
-                {
-                    Server = emailSettings.SmtpHost,
-                    Port = emailSettings.SmtpPort,
-                    User = emailSettings.SmtpUsername,
-                    Password = emailSettings.SmtpPassword,
-                    UseSsl = true,
-                    RequiresAuthentication = true,
-                    SocketOptions = MailKit.Security.SecureSocketOptions.StartTls
-                });
+                .AddRazorRenderer();
 
-            // For MailKit (more robust):
-            // services.AddFluentEmail(...)
-            //    .AddRazorRenderer()
-            //    .AddMailKitSender(new FluentEmail.MailKit.Smtp.SmtpClientOptions { ... });
-            // Since I installed FluentEmail.MailKit, I should use it.
-            // However, typical FluentEmail setup uses SmtpClient for simplicity or specific MailKit extensions.
-            // Let's stick to the basic SmtpSender for now if MailKit extension is not showing up or needs more config.
-            // Actually, I installed `FluentEmail.MailKit`. Let me check if `AddMailKitSender` is available.
-            // It should be. But I'll use standard SmtpClient for the first pass to be safe if I don't recall the exact MailKit options class.
-            // Wait, the user specifically asked for MailKit.
-            // I should try to use it.
+            if (!string.IsNullOrEmpty(emailSettings.CommunicationServiceConnectionString))
+            {
+                // Use Azure Communication Services for Sending
+                services.AddScoped<FluentEmail.Core.Interfaces.ISender, AzureCommunicationEmailSender>();
+            }
+            else
+            {
+                // Use SMTP (MailKit)
+                services.AddFluentEmail(emailSettings.FromEmail, emailSettings.FromName)
+                    .AddMailKitSender(new SmtpClientOptions
+                    {
+                        Server = emailSettings.SmtpHost,
+                        Port = emailSettings.SmtpPort,
+                        User = emailSettings.SmtpUsername,
+                        Password = emailSettings.SmtpPassword,
+                        UseSsl = true,
+                        RequiresAuthentication = true,
+                        SocketOptions = MailKit.Security.SecureSocketOptions.StartTls
+                    });
+            }
 
-            services.AddSingleton<EmailChannel>();
+            if (emailSettings.UseAzureServiceBus)
+            {
+                // Azure Service Bus Implementation
+                services.AddScoped<IEmailQueueProducer, AzureServiceBusEmailProducer>();
+                services.AddHostedService<AzureServiceBusEmailConsumer>();
+            }
+            else
+            {
+                // In-Memory Channel Implementation
+                services.AddSingleton<EmailChannel>();
+                services.AddScoped<IEmailQueueProducer, InMemoryEmailQueueProducer>();
+                services.AddHostedService<EmailBackgroundService>();
+            }
+
             services.AddScoped<ISendEmailService, EmailService>();
-            services.AddHostedService<EmailBackgroundService>();
 
             return services;
         }
 
         public static IServiceCollection AddFileStorageServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.Configure<SmsSettings>(configuration.GetSection("SmsSettings"));
             services.Configure<FileStorageSettings>(configuration.GetSection("FileStorage"));
             services.AddHttpContextAccessor(); // Needed for Local Storage URL generation
 
