@@ -82,5 +82,32 @@ namespace EHS.Infrastructure.Services.Storage
             var sasUri = blobClient.GenerateSasUri(sasBuilder);
             return Task.FromResult(sasUri.ToString());
         }
+
+        public Task<string> GetFileUploadUrlAsync(string fileName, string containerName, int expiresInMinutes = 15)
+        {
+            var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+            var blobClient = containerClient.GetBlobClient(fileName);
+
+            if (!blobClient.CanGenerateSasUri)
+            {
+                return Task.FromResult(string.Empty);
+            }
+
+            var sasBuilder = new BlobSasBuilder()
+            {
+                BlobContainerName = containerName,
+                BlobName = fileName,
+                Resource = "b",
+                StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
+                ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(expiresInMinutes),
+                Protocol = SasProtocol.HttpsAndHttp
+            };
+
+            // Grant Write/Create permissions for upload
+            sasBuilder.SetPermissions(BlobSasPermissions.Write | BlobSasPermissions.Create);
+
+            var sasUri = blobClient.GenerateSasUri(sasBuilder);
+            return Task.FromResult(sasUri.ToString());
+        }
     }
 }

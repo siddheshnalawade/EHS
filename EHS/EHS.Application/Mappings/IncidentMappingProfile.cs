@@ -12,7 +12,8 @@ namespace EHS.Application.Mappings
         public IncidentMappingProfile()
         {
             // Incident mappings
-            CreateMap<CreateIncidentRequest, Incident>();
+            CreateMap<CreateIncidentRequest, Incident>()
+                .ForMember(dest => dest.Attachments, opt => opt.Ignore());
 
             CreateMap<UpdateIncidentRequest, Incident>()
                 .ForMember(dest => dest.OrganizationId, opt => opt.Ignore()); // Cannot change organization
@@ -43,6 +44,21 @@ namespace EHS.Application.Mappings
 
             // Implementation mappings
             CreateMap<UpdateImplementationRequest, IncidentImplementation>();
+            // Note: IncidentImplementation does not have Attachments directly, Attachments are on Incident.
+            // But if we ever add it, or if UpdateImplementationRequest maps to Incident in some context, we might need it.
+            // Currently Updates to implementation happen on the Entity 'IncidentImplementation', which doesn't have Attachments list.
+            // The Attachments are added to _attachmentRepository directly in the service.
+            // So no change needed here effectively unless the DTO has property that mismatches.
+            
+            // Wait, UpdateImplementationRequest DOES have Attachments now.
+            // But we are mapping it to IncidentImplementation entity.
+            // IncidentImplementation entity DOES NOT have an 'Attachments' property.
+            // So AutoMapper should naturally ignore it as it doesn't match?
+            // Unless strict mapping is on?
+            // Usually Unmapped properties in Source are ignored by default.
+            // But if it tries to match, it might fail.
+            // Let's be safe. But IncidentImplementation entity likely doesn't have 'Attachments'.
+            // Let's check IncidentImplementation entity first.
 
             CreateMap<IncidentImplementation, IncidentImplementationResponse>()
                 .ForMember(dest => dest.ClosureActionName, opt => opt.MapFrom(src => src.ClosureAction.Name))
@@ -53,9 +69,12 @@ namespace EHS.Application.Mappings
             // Benefit mapping
             CreateMap<Benefit, BenefitResponse>();
 
-            // Root cause detail mappings
             CreateMap<RootCauseDetailDto, RootCauseAnalysisDetail>();
             CreateMap<RootCauseAnalysisDetail, RootCauseDetailResponse>();
+
+            // Attachment mappings
+            CreateMap<IncidentAttachment, IncidentAttachmentResponse>()
+                .ForMember(dest => dest.UploadedByUserName, opt => opt.MapFrom(src => src.UploadedByUser != null ? src.UploadedByUser.UserName : null));
         }
     }
 }

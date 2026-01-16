@@ -18,6 +18,15 @@ namespace EHS.Application.Interfaces
         Task DeleteFileAsync(string fileRoute, string containerName);
 
         /// <summary>
+        /// Generates a pre-signed URL for uploading a file directly to the storage.
+        /// </summary>
+        /// <param name="fileName">The unique file name.</param>
+        /// <param name="containerName">The container name.</param>
+        /// <param name="expiresInMinutes">Time until expiration.</param>
+        /// <returns>The URL to PUT the file content to.</returns>
+        Task<string> GetFileUploadUrlAsync(string fileName, string containerName, int expiresInMinutes = 15);
+
+        /// <summary>
         /// Generates a secure, temporary URL for accessing the file.
         /// </summary>
         /// <param name="fileName">The name of the file in storage.</param>

@@ -102,7 +102,7 @@ namespace EHS.API.Controllers.v1
         /// <param name="request">Implementation update request</param>
         /// <returns>Updated incident with implementation details</returns>
         [HttpPut("{id:guid}/implementation")]
-        public async Task<IActionResult> UpdateImplementation(Guid id, [FromForm] UpdateImplementationRequest request)
+        public async Task<IActionResult> UpdateImplementation(Guid id, [FromBody] UpdateImplementationRequest request)
         {
             var validationResult = await _updateImplementationValidator.ValidateAsync(request);
             if (!validationResult.IsValid)

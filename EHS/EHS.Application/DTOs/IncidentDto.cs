@@ -18,7 +18,11 @@ namespace EHS.Application.DTOs
         public string Description { get; set; } = string.Empty;
         public string IncidentArea { get; set; } = string.Empty;
         public string ProposedSolution { get; set; } = string.Empty;
-        public List<Microsoft.AspNetCore.Http.IFormFile>? EvidenceFiles { get; set; }
+        public List<Guid> SeverityIds { get; set; } = [];
+        public List<Guid> PeopleInvolvedIds { get; set; } = [];
+        public List<Guid> MachineIds { get; set; } = [];
+
+        public List<AttachmentMetadataDto> Attachments { get; set; } = [];
     }
 
     /// <summary>

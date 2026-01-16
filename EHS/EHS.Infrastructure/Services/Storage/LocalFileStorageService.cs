@@ -81,5 +81,17 @@ namespace EHS.Infrastructure.Services.Storage
             var url = $"{baseUrl}/{_settings.BasePath}/{containerName}/{fileName}";
             return Task.FromResult(url);
         }
+
+        public Task<string> GetFileUploadUrlAsync(string fileName, string containerName, int expiresInMinutes = 15)
+        {
+            // For Local storage, we return a URL to our own API controller that handles the stream.
+            // e.g. /api/v1/storage/upload/incidents/guid.jpg
+            
+            var request = _httpContextAccessor.HttpContext?.Request;
+            var baseUrl = $"{request?.Scheme}://{request?.Host}";
+            
+            var url = $"{baseUrl}/api/v1/storage/upload/{containerName}/{fileName}";
+            return Task.FromResult(url);
+        }
     }
 }

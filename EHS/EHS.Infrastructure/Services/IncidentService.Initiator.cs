@@ -34,21 +34,19 @@ namespace EHS.Infrastructure.Services
                 await _incidentRepository.AddAsync(incident);
                 await AddIncidentHistoryAsync(incident.Id, userId, RoleConstant.Initiator, IncidentAction.Created);
 
-                // Handle Evidence Files
-                if (request.EvidenceFiles != null && request.EvidenceFiles.Count > 0)
+                // Handle Evidence Files (Already uploaded by client)
+                if (request.Attachments != null && request.Attachments.Count > 0)
                 {
-                    foreach (var file in request.EvidenceFiles)
+                    foreach (var attachmentMeta in request.Attachments)
                     {
-                        var fileUrl = await _fileStorageService.UploadFileAsync(file, "incidents");
-                        
                         var attachment = new IncidentAttachment
                         {
                             IncidentId = incident.Id,
-                            FileName = file.FileName,
-                            FilePath = fileUrl,
+                            FileName = attachmentMeta.OriginalFileName,
+                            FilePath = attachmentMeta.FileName, // Use the unique filename from server
                             AttachmentType = "InitialEvidence",
-                            ContentType = file.ContentType,
-                            FileSize = file.Length,
+                            ContentType = attachmentMeta.ContentType,
+                            FileSize = attachmentMeta.FileSize,
                             UploadedByUserId = userId
                         };
 
