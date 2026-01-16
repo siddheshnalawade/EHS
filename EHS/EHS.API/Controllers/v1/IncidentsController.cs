@@ -154,8 +154,18 @@ namespace EHS.API.Controllers.v1
 
         private Guid GetCurrentUserId()
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return Guid.Parse(userIdClaim!);
+            // Modified for Azure AD Hybrid Auth
+            // We look for "LocalUserId" added by UserSyncMiddleware
+            var localId = User.FindFirst("LocalUserId")?.Value;
+            
+            if (string.IsNullOrEmpty(localId))
+            {
+                // Fallback or throw specific error logic?
+                // If middleware worked, this should never be null.
+                throw new UnauthorizedAccessException("User context is not fully established.");
+            }
+
+            return Guid.Parse(localId);
         }
     }
 }

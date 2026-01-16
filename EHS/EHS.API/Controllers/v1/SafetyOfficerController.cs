@@ -174,8 +174,15 @@ namespace EHS.API.Controllers.v1
 
         private Guid GetCurrentUserId()
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return Guid.Parse(userIdClaim!);
+            // Modified for Azure AD Hybrid Auth
+            var localId = User.FindFirst("LocalUserId")?.Value;
+            
+            if (string.IsNullOrEmpty(localId))
+            {
+               throw new UnauthorizedAccessException("User context is not fully established.");
+            }
+
+            return Guid.Parse(localId);
         }
     }
 }

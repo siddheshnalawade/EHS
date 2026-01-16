@@ -41,5 +41,11 @@ namespace EHS.Domain.Entities
         /// Allows soft-delete functionality without removing data.
         /// </summary>
         public bool IsActive { get; set; } = true;
+
+        /// <summary>
+        /// Azure Active Directory Object ID (OID).
+        /// Used for linking local users to Azure Users.
+        /// </summary>
+        public string? AzureObjectId { get; set; }
     }
 }

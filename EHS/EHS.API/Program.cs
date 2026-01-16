@@ -41,7 +41,10 @@ builder.Services.AddAuthorization();
 // ============================================
 // JWT Configuration
 // ============================================
-builder.Services.AddJwtAuthentication(builder.Configuration);
+// ============================================
+// Azure AD Auth Configuration
+// ============================================
+builder.Services.AddAzureAdAuthentication(builder.Configuration);
 
 // ============================================
 // AutoMapper Profile Cofiguration
@@ -66,10 +69,6 @@ builder.Services.AddApplicationRepositories();
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddEmailServices(builder.Configuration);
 builder.Services.AddFileStorageServices(builder.Configuration);
-
-// Health Checks
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<EHS.Infrastructure.Data.ApplicationDbContext>();
 
 // Todo - Add CORS policy
 // Todo - Add Swagger for API documentation
@@ -106,6 +105,7 @@ app.UseMiddleware<ApplicationExceptionHandlingMiddleware>();
 /// Must come before Authorization.
 /// </summary>
 app.UseAuthentication();
+app.UseMiddleware<UserSyncMiddleware>();
 
 /// <summary>
 /// Authorization middleware.

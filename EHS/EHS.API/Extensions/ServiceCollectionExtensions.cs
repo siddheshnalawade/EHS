@@ -55,31 +55,11 @@ namespace EHS.API.Extensions
             return services;
         }
 
-        public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddAzureAdAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
-            services.Configure<JWTOptions>(configuration.GetSection("JWT"));
-
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(o =>
-            {
-                o.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero,
-                    ValidIssuer = configuration["JWT:Issuer"],
-                    ValidAudience = configuration["JWT:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(configuration["JWT:Key"] ??
-                        throw new InvalidOperationException("JWT:Key not configured")))
-                };
-            });
+            // Requires: Microsoft.Identity.Web
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddMicrosoftIdentityWebApi(configuration.GetSection("AzureAd"));
 
             return services;
         }
@@ -141,6 +121,7 @@ namespace EHS.API.Extensions
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<AzureUserSyncService>(); // Sync User Middleware Service
 
             // Master Data Services
             services.AddScoped<IOrganizationService, OrganizationService>();
