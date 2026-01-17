@@ -27,28 +27,17 @@ namespace EHS.Infrastructure.Services
 
             if (string.IsNullOrEmpty(oid) || string.IsNullOrEmpty(email))
             {
-                _logger.LogWarning("Azure claims missing OID or Email.");
+                _logger.LogWarning("Azure claims missing OID or Email. OID: {OID}, Email: {Email}", oid, email);
                 return null;
             }
 
-            // 1. Try Find by AzureObjectId (Fastest, Stable)
-            // We need to add a method to UserManager or duplicate finding logic here if custom store implementation is limited.
-            // Since we use EF, we can query users directly via UserManager if we extended it, 
-            // Or just iterate (inefficient) or use normal FindByEmail.
-            // The BEST way is to first try finding by 'AzureObjectId' if we could index it.
-            // But 'UserManager' doesn't know about AzureObjectId property by default.
-            // So we can use: _userManager.Users.FirstOrDefaultAsync(u => u.AzureObjectId == oid);
-            
-            // NOTE: Since I am in a service, I can't access DbSet directly unless I inject Repo or Context.
-            // But UserManager exposes IQueryable "Users".
-            
+            // 1. Try Find by AzureObjectId (Fastest, Most Reliable)
             var user = _userManager.Users.FirstOrDefault(u => u.AzureObjectId == oid);
 
             if (user != null)
             {
-                // User Found - Update details if changed (Sync Profile)
-                // Optionally update Name/Email if changed in Azure?
-                // Let's just return for performance.
+                // User Found - Update profile if changed (Sync Profile)
+                await UpdateUserProfileAsync(user, name, email);
                 return user;
             }
 
@@ -58,14 +47,21 @@ namespace EHS.Infrastructure.Services
             if (user != null)
             {
                 // Link Existing User to Azure OID
-                _logger.LogInformation($"Linking existing local user {email} to Azure OID {oid}.");
+                _logger.LogInformation("Linking existing local user {Email} to Azure OID {OID}", email, oid);
                 user.AzureObjectId = oid;
+                user.LastLoginAt = DateTime.UtcNow;
                 await _userManager.UpdateAsync(user);
                 return user;
             }
 
-            // 3. Create New Shadow User (JIT)
-            _logger.LogInformation($"Creating new JIT user for {email} (OID: {oid}).");
+            // 3. Create New Shadow User (JIT - Just-In-Time Provisioning)
+            return await CreateJITUserAsync(oid, email, name);
+        }
+
+        private async Task<ApplicationUser?> CreateJITUserAsync(string oid, string email, string? name)
+        {
+            _logger.LogInformation("Creating JIT user for {Email} (OID: {OID})", email, oid);
+            
             var newUser = new ApplicationUser
             {
                 UserName = email, // Username must be unique
@@ -74,19 +70,87 @@ namespace EHS.Infrastructure.Services
                 FullName = name ?? email.Split('@')[0],
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
-                EmailConfirmed = true
+                LastLoginAt = DateTime.UtcNow,
+                EmailConfirmed = true // Azure already verified email
             };
 
             var result = await _userManager.CreateAsync(newUser);
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                // Assign Default Role? e.g. "User"
-                await _userManager.AddToRoleAsync(newUser, "User");
-                return newUser;
+                _logger.LogError("Failed to create JIT user: {Errors}", 
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+                return null;
             }
 
-            _logger.LogError($"Failed to create JIT user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
-            return null;
+            // Assign Default Role based on business logic
+            await AssignDefaultRoleAsync(newUser);
+            
+            _logger.LogInformation("JIT user created successfully: {Email} (ID: {Id})", newUser.Email, newUser.Id);
+            
+            return newUser;
+        }
+
+        private async Task AssignDefaultRoleAsync(ApplicationUser user)
+        {
+            // Strategy 1: Assign based on email domain (example)
+            if (user.Email?.EndsWith("@admin.company.com") == true)
+            {
+                await _userManager.AddToRoleAsync(user, "Admin");
+                _logger.LogInformation("Assigned Admin role to {Email}", user.Email);
+            }
+            else if (user.Email?.EndsWith("@safety.company.com") == true)
+            {
+                await _userManager.AddToRoleAsync(user, "SafetyOfficer");
+                _logger.LogInformation("Assigned SafetyOfficer role to {Email}", user.Email);
+            }
+            else
+            {
+                // Default role for new users - they need admin to assign proper role
+                await _userManager.AddToRoleAsync(user, "Initiator");
+                _logger.LogInformation("Assigned default Initiator role to {Email}", user.Email);
+            }
+
+            // Strategy 2: You can also assign based on Azure AD group membership
+            // This requires Microsoft Graph API integration
+            // Example: If user is in "EHS-SafetyOfficers" group in Azure AD, assign SafetyOfficer role
+        }
+
+        private async Task UpdateUserProfileAsync(ApplicationUser user, string? name, string? email)
+        {
+            bool hasChanges = false;
+
+            // Update name if changed
+            if (!string.IsNullOrEmpty(name) && user.FullName != name)
+            {
+                _logger.LogInformation("Updating name for {Email}: {OldName} -> {NewName}", 
+                    user.Email, user.FullName, name);
+                user.FullName = name;
+                hasChanges = true;
+            }
+
+            // Update email if changed (rare, but possible)
+            if (!string.IsNullOrEmpty(email) && user.Email != email)
+            {
+                _logger.LogInformation("Updating email for user {OldEmail} -> {NewEmail}", 
+                    user.Email, email);
+                user.Email = email;
+                user.UserName = email;
+                hasChanges = true;
+            }
+
+            // Always update last login time
+            user.LastLoginAt = DateTime.UtcNow;
+            hasChanges = true;
+
+            if (hasChanges)
+            {
+                var result = await _userManager.UpdateAsync(user);
+                if (!result.Succeeded)
+                {
+                    _logger.LogWarning("Failed to update user profile: {Errors}", 
+                        string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
+            }
         }
     }
 }
