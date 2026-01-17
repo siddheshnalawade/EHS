@@ -1,7 +1,10 @@
 using EHS.API.Extensions;
 using EHS.API.Middlewares;
-using Serilog;
+using EHS.Domain.Entities;
+using EHS.Infrastructure.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Azure;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +80,27 @@ builder.Services.AddFileStorageServices(builder.Configuration);
 // Build Application
 // ============================================
 var app = builder.Build();
+
+// ============================================
+// Seed Database (Roles and Admin User)
+// ============================================
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        
+        await DatabaseSeeder.SeedAsync(userManager, roleManager, logger);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database");
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {

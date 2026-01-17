@@ -92,27 +92,10 @@ namespace EHS.Infrastructure.Services
 
         private async Task AssignDefaultRoleAsync(ApplicationUser user)
         {
-            // Strategy 1: Assign based on email domain (example)
-            if (user.Email?.EndsWith("@admin.company.com") == true)
-            {
-                await _userManager.AddToRoleAsync(user, "Admin");
-                _logger.LogInformation("Assigned Admin role to {Email}", user.Email);
-            }
-            else if (user.Email?.EndsWith("@safety.company.com") == true)
-            {
-                await _userManager.AddToRoleAsync(user, "SafetyOfficer");
-                _logger.LogInformation("Assigned SafetyOfficer role to {Email}", user.Email);
-            }
-            else
-            {
-                // Default role for new users - they need admin to assign proper role
-                await _userManager.AddToRoleAsync(user, "Initiator");
-                _logger.LogInformation("Assigned default Initiator role to {Email}", user.Email);
-            }
-
-            // Strategy 2: You can also assign based on Azure AD group membership
-            // This requires Microsoft Graph API integration
-            // Example: If user is in "EHS-SafetyOfficers" group in Azure AD, assign SafetyOfficer role
+            // Real-world approach: All new users get "Initiator" role by default
+            // Admin will assign other roles (SafetyOfficer, Implementor) through admin UI
+            await _userManager.AddToRoleAsync(user, "Initiator");
+            _logger.LogInformation("Assigned default Initiator role to new user: {Email}", user.Email);
         }
 
         private async Task UpdateUserProfileAsync(ApplicationUser user, string? name, string? email)

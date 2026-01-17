@@ -18,6 +18,8 @@ using System.Text;
 using EHS.Infrastructure.Services.Email;
 using FluentEmail.MailKitSmtp;
 using EHS.Infrastructure.Services.Storage;
+using Microsoft.Identity.Web;
+using EHS.Infrastructure.Services.Sms;
 
 namespace EHS.API.Extensions
 {
@@ -93,6 +95,10 @@ namespace EHS.API.Extensions
             services.AddScoped<IValidator<PassToPeerRequest>, PassToPeerRequestValidator>();
             services.AddScoped<IValidator<UpdateImplementationRequest>, UpdateImplementationRequestValidator>();
 
+            // User Management Validators
+            services.AddScoped<IValidator<AssignRoleRequest>, AssignRoleRequestValidator>();
+            services.AddScoped<IValidator<RemoveRoleRequest>, RemoveRoleRequestValidator>();
+
             return services;
         }
 
@@ -134,21 +140,20 @@ namespace EHS.API.Extensions
 
             // Incident Workflow Services
             services.AddScoped<IIncidentService, IncidentService>();
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<ILookupService, LookupService>();
+            services.AddScoped<IUserManagementService, UserManagementService>();
 
             // SMS Services
             var smsSettings = configuration.GetSection("SmsSettings").Get<SmsSettings>();
             if (smsSettings != null && smsSettings.UseAzureServiceBus)
             {
-                 services.AddScoped<ISmsQueueProducer, EHS.Infrastructure.Services.Sms.AzureServiceBusSmsProducer>();
-                 services.AddHostedService<EHS.Infrastructure.Services.Sms.AzureServiceBusSmsConsumer>();
+                services.AddScoped<ISmsQueueProducer, AzureServiceBusSmsProducer>();
+                services.AddHostedService<AzureServiceBusSmsConsumer>();
             }
             else
             {
-                services.AddSingleton<EHS.Infrastructure.Services.Sms.SmsChannel>();
-                services.AddScoped<ISmsQueueProducer, EHS.Infrastructure.Services.InMemorySmsQueueProducer>();
-                services.AddHostedService<EHS.Infrastructure.Services.SmsBackgroundService>(); 
+                services.AddSingleton<SmsChannel>();
+                services.AddScoped<ISmsQueueProducer, InMemorySmsQueueProducer>();
+                services.AddHostedService<SmsBackgroundService>();
             }
             services.AddScoped<ISmsService, SmsService>();
 
@@ -227,6 +232,7 @@ namespace EHS.API.Extensions
         {
             services.AddAutoMapper(c => { }, typeof(MasterDataMappingProfile).Assembly);
             services.AddAutoMapper(c => { }, typeof(IncidentMappingProfile).Assembly);
+            services.AddAutoMapper(c => { }, typeof(UserMappingProfile).Assembly);
 
             return services;
         }

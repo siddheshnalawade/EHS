@@ -58,27 +58,28 @@ namespace EHS.Infrastructure.Services.Sms
 
         private async Task MessageHandler(ProcessMessageEventArgs args)
         {
-             string body = args.Message.Body.ToString();
+            string body = args.Message.Body.ToString();
             SmsRequest? smsRequest;
-            
-            try 
+
+            try
             {
                 smsRequest = JsonSerializer.Deserialize<SmsRequest>(body);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to deserialize SMS request.");
                 await args.DeadLetterMessageAsync(args.Message, "DeserializationError", ex.Message);
                 return;
             }
 
-            if(smsRequest == null) 
+            if (smsRequest == null)
             {
                 await args.CompleteMessageAsync(args.Message);
-                return;   
+                return;
             }
 
-
+            try
+            {
                 // Real Logic using Azure Communication Services
                 using var scope = _serviceProvider.CreateScope();
                 var settings = scope.ServiceProvider.GetRequiredService<IOptions<SmsSettings>>().Value;
@@ -108,13 +109,13 @@ namespace EHS.Infrastructure.Services.Sms
                         to: smsRequest.ToPhoneNumber,
                         message: smsRequest.Message
                     );
-                    
+
                     _logger.LogInformation($"[SMS SENT] To: {smsRequest.ToPhoneNumber}");
                 });
 
                 await args.CompleteMessageAsync(args.Message);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, $"Failed to send SMS to {smsRequest.ToPhoneNumber}.");
                 await args.AbandonMessageAsync(args.Message);
@@ -129,9 +130,9 @@ namespace EHS.Infrastructure.Services.Sms
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-             await _processor.CloseAsync(cancellationToken);
-             await _client.DisposeAsync();
-             await base.StopAsync(cancellationToken);
+            await _processor.CloseAsync(cancellationToken);
+            await _client.DisposeAsync();
+            await base.StopAsync(cancellationToken);
         }
     }
 }
