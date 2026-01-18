@@ -20,14 +20,24 @@ namespace EHS.Infrastructure.Services
 
         public async Task<ApplicationUser?> SyncUserAsync(ClaimsPrincipal principal)
         {
+            // Debug: Log all claims for troubleshooting
+            _logger.LogDebug("Syncing user. Claims present: {Claims}",
+                string.Join(", ", principal.Claims.Select(c => $"{c.Type}={c.Value}")));
+
             // Extract Azure Claims
-            var oid = principal.GetObjectId(); // From Microsoft.Identity.Web
-            var email = principal.FindFirstValue(ClaimTypes.Email) ?? principal.FindFirstValue("preferred_username"); // preferred_username is common in v2.0
-            var name = principal.FindFirstValue(ClaimTypes.Name) ?? principal.FindFirstValue("name");
+            // GetObjectId() looks for "oid" or "http://schemas.microsoft.com/identity/claims/objectidentifier"
+            var oid = principal.GetObjectId();
+
+            // Try multiple common email/username claims
+            var email = principal.FindFirstValue(ClaimTypes.Email) ??
+                        principal.FindFirstValue(ClaimTypes.Upn);
+
+            var name = principal.FindFirstValue("name") ?? principal.FindFirstValue(ClaimTypes.Name);
 
             if (string.IsNullOrEmpty(oid) || string.IsNullOrEmpty(email))
             {
-                _logger.LogWarning("Azure claims missing OID or Email. OID: {OID}, Email: {Email}", oid, email);
+                _logger.LogWarning("Azure claims missing OID or Email. OID: {OID}, Email: {Email}. Full Claims: {Claims}",
+                    oid, email, string.Join(", ", principal.Claims.Select(c => $"{c.Type}={c.Value}")));
                 return null;
             }
 
@@ -61,7 +71,7 @@ namespace EHS.Infrastructure.Services
         private async Task<ApplicationUser?> CreateJITUserAsync(string oid, string email, string? name)
         {
             _logger.LogInformation("Creating JIT user for {Email} (OID: {OID})", email, oid);
-            
+
             var newUser = new ApplicationUser
             {
                 UserName = email, // Username must be unique
@@ -77,16 +87,16 @@ namespace EHS.Infrastructure.Services
             var result = await _userManager.CreateAsync(newUser);
             if (!result.Succeeded)
             {
-                _logger.LogError("Failed to create JIT user: {Errors}", 
+                _logger.LogError("Failed to create JIT user: {Errors}",
                     string.Join(", ", result.Errors.Select(e => e.Description)));
                 return null;
             }
 
             // Assign Default Role based on business logic
             await AssignDefaultRoleAsync(newUser);
-            
+
             _logger.LogInformation("JIT user created successfully: {Email} (ID: {Id})", newUser.Email, newUser.Id);
-            
+
             return newUser;
         }
 
@@ -105,7 +115,7 @@ namespace EHS.Infrastructure.Services
             // Update name if changed
             if (!string.IsNullOrEmpty(name) && user.FullName != name)
             {
-                _logger.LogInformation("Updating name for {Email}: {OldName} -> {NewName}", 
+                _logger.LogInformation("Updating name for {Email}: {OldName} -> {NewName}",
                     user.Email, user.FullName, name);
                 user.FullName = name;
                 hasChanges = true;
@@ -114,7 +124,7 @@ namespace EHS.Infrastructure.Services
             // Update email if changed (rare, but possible)
             if (!string.IsNullOrEmpty(email) && user.Email != email)
             {
-                _logger.LogInformation("Updating email for user {OldEmail} -> {NewEmail}", 
+                _logger.LogInformation("Updating email for user {OldEmail} -> {NewEmail}",
                     user.Email, email);
                 user.Email = email;
                 user.UserName = email;
@@ -130,7 +140,7 @@ namespace EHS.Infrastructure.Services
                 var result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
-                    _logger.LogWarning("Failed to update user profile: {Errors}", 
+                    _logger.LogWarning("Failed to update user profile: {Errors}",
                         string.Join(", ", result.Errors.Select(e => e.Description)));
                 }
             }

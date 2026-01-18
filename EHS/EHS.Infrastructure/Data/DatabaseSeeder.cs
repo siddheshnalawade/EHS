@@ -23,7 +23,7 @@ namespace EHS.Infrastructure.Data
                 await SeedRolesAsync(roleManager, logger);
 
                 // 2. Seed Admin User
-                await SeedAdminUserAsync(userManager, logger);
+                //await SeedAdminUserAsync(userManager, logger);
 
                 logger.LogInformation("Database seeding completed successfully");
             }

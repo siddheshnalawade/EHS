@@ -36,9 +36,8 @@ namespace EHS.API.Extensions
 
         public static IServiceCollection AddIdentityConfiguration(this IServiceCollection services)
         {
-            services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
+            services.AddIdentityCore<ApplicationUser>(options =>
             {
-                // Password settings
                 options.Password.RequiredLength = 12;
                 options.Password.RequiredUniqueChars = 4;
                 options.Password.RequireDigit = true;
@@ -46,21 +45,24 @@ namespace EHS.API.Extensions
                 options.Password.RequireUppercase = true;
                 options.Password.RequireNonAlphanumeric = true;
 
-                // User settings
                 options.User.RequireUniqueEmail = true;
             })
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddDefaultTokenProviders()
-            .AddUserStore<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, Guid>>()
-            .AddRoleStore<RoleStore<ApplicationRole, ApplicationDbContext, Guid>>();
+                .AddRoles<ApplicationRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders()
+                .AddUserStore<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, Guid>>()
+                .AddRoleStore<RoleStore<ApplicationRole, ApplicationDbContext, Guid>>();
 
             return services;
         }
 
         public static IServiceCollection AddAzureAdAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
-            // Requires: Microsoft.Identity.Web
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
                 .AddMicrosoftIdentityWebApi(configuration.GetSection("AzureAd"));
 
             return services;
@@ -210,7 +212,6 @@ namespace EHS.API.Extensions
 
         public static IServiceCollection AddFileStorageServices(this IServiceCollection services, IConfiguration configuration)
         {
-            services.Configure<SmsSettings>(configuration.GetSection("SmsSettings"));
             services.Configure<FileStorageSettings>(configuration.GetSection("FileStorage"));
             services.AddHttpContextAccessor(); // Needed for Local Storage URL generation
 

@@ -30,7 +30,7 @@ namespace EHS.API.Controllers.v1
 
             // 1. Validate Extension (Security)
             var extension = Path.GetExtension(request.FileName).ToLowerInvariant();
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".pdf", ".mp4", ".mov" }; // Added Video extensions
+            var allowedExtensions = new[] { ".jpg", ".  ", ".png", ".pdf", ".mp4", ".mov" }; // Added Video extensions
             if (!allowedExtensions.Contains(extension))
             {
                 return BadRequest($"File type '{extension}' is not allowed.");

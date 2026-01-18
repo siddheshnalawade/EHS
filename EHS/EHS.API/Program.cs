@@ -92,7 +92,7 @@ using (var scope = app.Services.CreateScope())
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
         var logger = services.GetRequiredService<ILogger<Program>>();
-        
+
         await DatabaseSeeder.SeedAsync(userManager, roleManager, logger);
     }
     catch (Exception ex)
@@ -143,7 +143,6 @@ app.UseAuthorization();
 /// Registers all API endpoints defined in controllers.
 /// </summary>
 app.MapControllers();
-app.MapHealthChecks("/health");
 
 /// <summary>
 /// Runs the application asynchronously.
